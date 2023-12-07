@@ -121,24 +121,22 @@
       (+ 1 (length-character-list (cdr character-list)))))
 
 ; Função gráfica p/ selecionar a role(JuniorDaCorte, PlenoCondês, KingSenior )
-(define (display-select-role name)
-  (display (format "\n Saudações ~a, a seguir selecione a sua classe,
- ao qual corresponde ao nivel de dificuldade que o usuario deseja enf
- rentar no futuro!." name))
+(define (display-select-role)
+  (display "\nSaudações ~a, a seguir selecione a sua classe, ao qual corresponde ao nivel de dificuldade que o usuario deseja enfrentar no futuro!.")
   (newline)
   (displayln "---------------------------------------")
-  (displayln "     1. Junior")
-  (displayln "     2. Pleno")
-  (displayln "     3. Senior")
+  (displayln "1. Junior")
+  (displayln "2. Pleno")
+  (displayln "3. Senior")
   (displayln "---------------------------------------")
   (newline))
 
 ; Função para escolher uma role
-(define (set-role)
+(define (set-role player)
   (display-select-role)
   (display "Selecione uma classe -> ")
   (flush-output)
-  (read-line))
+  (player-role player)(read-line))
 
 
 ; Função gráfica do escolher nome.
@@ -151,9 +149,9 @@ será a personificação da sua jornada e conquistas.")
 ; Função para escolher um nome.
 (define (set-name)
   (display-select-name)
-  (display "\n Nome -> ")
+  (display "Nome -> ")
   (flush-output)
-  ((read-line)))
+  ((player-name player)(read-line)))
 
 
 
@@ -161,6 +159,8 @@ será a personificação da sua jornada e conquistas.")
 (define (next-level level player)
   (display "Parabéns, você está indo para a fase ")
   (displayln (level-number-level level)))
+
+
 
 
 
@@ -177,27 +177,12 @@ será a personificação da sua jornada e conquistas.")
       (else (error "Limite de criação de personagem atingido \n 3/3"))
      ))
 
-  (display-select-name)
-  (display "\n Nome -> ")
-  (let ((name (read-line)))
-  (if (> (string-length name) 15) (error "O nome não pode ser maior do que 15 caracteres!!") 0)
+  (display ( format "O id é igual a -> ~a" id))
+    
 
-  (display-select-role name)
-  (display "\n Role -> ")
-  (let ((role (read-line)))
-  (if (> (string-length name) 15) (error "Essa clase não existe") 0)
-   ; Fazer aqui verificador de classes existentes.
+  (set-role player-1)
 
-  (let ((level 1))
-
-  (let ((experience 0))
-  
-  
-  (let ((player-1 (make-player id name role level experience 1)))
-    (display (format "\nParabéns, ~a, o seu personagem foi criado com sucesso!!" name))
-    (display (format "\n ID -> ~a / Name -> ~a / Role -> ~a / Level -> ~a / Experience -> ~a /" id name role level experience))
-    ; Outras ações que você deseja executar com o player-1 podem vir aqui.
-    ))))))
+  (let ((player-1 (make-player id name role level experience advanced)))))
 
 
 
@@ -264,37 +249,26 @@ será a personificação da sua jornada e conquistas.")
 ; 1 --> OKAY
 ; Função do menu do jogo
 (define (menu-game)
-  (displayln " =========================================")
-  (displayln "       Aventuras na Terra de Racket       ")
-  (displayln " =========================================")
+  (display "\n ***** Aventuras na Terra de Racket *****")
   (newline)
-  (displayln "             1. Jogar")
-  (displayln "             2. Ajuda")
-  (displayln "             3. Créditos")
-  (displayln "             4. Sair")
+  (displayln "1. Jogar")
+  (displayln "2. Ajuda")
+  (displayln "3. Créditos")
+  (displayln "4. Sair")
   (newline)
   (menu-select))
 
 
-
-
-
 ; Função de ajuda - OKAY
 (define (print-help)
-  (displayln " =========================================")
-  (displayln "         Bem-vindo ao menu de ajuda       ")
-  (displayln " =========================================")
-  
-  (displayln " Você está em uma jornada para aprender
- Racket e se tornar um mestre programador!")
+  (displayln "Bem-vindo ao menu de ajuda.")
+  (displayln "Você está em uma jornada para aprender Racket e se tornar um mestre programador!")
   (newline)
-  (displayln "       1.      Explorar Tutoriais")
-  (displayln "       2.   Consultar Dicas do Mestre")
-  (displayln "       3.    Ler Documentação Mágica")
-  (displayln "       4.      Voltar à Aventura")
+  (displayln "1. Explorar Tutoriais")
+  (displayln "2. Consultar Dicas do Mestre")
+  (displayln "3. Ler Documentação Mágica")
+  (displayln "4. Voltar à Aventura")
   (newline)
-
-  (display "-> ")
   (let ((x (read-line)))
     (if (= (string->number x) 4)
         (menu-game)
@@ -303,14 +277,9 @@ será a personificação da sua jornada e conquistas.")
 
 ; Função que imprime os créditos do jogo
 (define (print-credits)
-  (displayln " =========================================")
-  (displayln "    Seja muito bem vindo aos créditos.")
-  (displayln " =========================================")
+  (display "Seja muito bem vindo aos créditos.\n")
+  (display "\n\n 1. Voltar à Aventura")
   (newline)
-  (displayln "    1. Voltar à Aventura")
-  (newline)
-
-  (display "-> ")
   (let ((x (read-line)))
     (if (= (string->number x) 1)
         (menu-game)
@@ -324,17 +293,14 @@ será a personificação da sua jornada e conquistas.")
 ; 3. Definindo o personagem
 ; -------------------------------------------------------------------------------------------------------
 
-; (define player-1 (make-player 1 "Andrei" "Junior" 1 0 1))
+(define player-1 (make-player 1 "Andrei" "Junior" 1 0 1))
 (define player-2 (make-player 2 "ZeroCool" "Senior" 1 0 1))
 (define player-3 (make-player 3 "NullCipherr" "Junior" 1 0 1))
 
 (define level-1(level 1 "Level 1" "Comparação" 50 true))
 
 
-; (set-name)
-; (set-role)
-
- (menu-game)
+(menu-game)
 
 ; (get-name player-1)
 
