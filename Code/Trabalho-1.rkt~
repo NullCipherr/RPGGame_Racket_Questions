@@ -1,0 +1,12 @@
+#lang racket
+
+; Estrutura de Dados
+(define struct player (name level experience))
+(define struct challenge (name concept complete))
+
+; Seção : Desafio
+(define (initialize-challenge challenge))
+
+(define (complete-challenge challenge))
+
+(define (write-code code))
