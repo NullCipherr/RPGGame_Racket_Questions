@@ -6,9 +6,7 @@
 
 ;  Espaço reservado para idéias de implementação 
 
-; 1.1 Função de dificuldades -> Roles -> Junior, Pleno, Senior, etc -> +experience
-; 1.2 Cada nível ter um nome customizado (Jornada pela comparação, Castelo da semantica, ...)
-; 1.3 Lista contendo todos os desafios (Penso ser melhor de controlar uma sequencia de niveis)
+; 1.1 Player HUD - Nome - Level - Experience - Stage -
 
 ;; ---------------------------------------------------------- ;;
 
@@ -47,7 +45,6 @@
 ;   - advance: Avanço ou progresso adicional do jogador.
 ; 
 (define (make-player id name role level experience advance)
-  ; A função 'list' é utilizada para criar uma lista contendo informações do jogador.
   ; Cada elemento da lista é uma cons célula que associa uma chave simbólica ao valor correspondente.
   (player id name role level experience advance))
 
@@ -59,16 +56,6 @@
 ; Seção : Personagem
 ; --------------------------------------------------------
 
-; Função para avançar o level do personagem.
-(define (level-up player)
-  (+ (player-level player) 1)
-  (notify-level-up (+ (player-level player) 1)))
-
-;
-(define (notify-level-up level)
-  (newline)
-  (display "Parabéns!! Você avançou para o nível ")(display level))
-
 ; Função para incrementar o valor da experiencia do personagem(LevelXP --> Player)
 (define (increment-experience level player)
   ; Função para incrementar a experiência do jogador ao completar um nível
@@ -78,6 +65,16 @@
       (begin
         (displayln "O level não foi completado!!")
         (player-experience player)))
+
+; Função para avançar o level do personagem.
+(define (level-up player)
+  (+ (player-level player) 1)
+  (notify-level-up (+ (player-level player) 1)))
+
+;
+(define (notify-level-up level)
+  (newline)
+  (display "Parabéns!! Você avançou para o nível ")(display level))
 
 ; Função que incrementa a expriência do personagem.
 (define (notify-increment-experience experience)
@@ -189,7 +186,7 @@ será a personificação da sua jornada e conquistas.")
 ;
 (define (start-game player)
   (newline)
-  (display "\n 1. Começar os desafios \n")
+  (display (format " Bem Vindo ~a, \n Digite 1 para começar o desafio, Boa Sorte!! \n\n" (player-name player)))
   (display "-> ")(let ((option (read-line)))
   (cond
     ((= (string->number option) 1) (initialize-game player))
@@ -224,43 +221,22 @@ será a personificação da sua jornada e conquistas.")
   
   
   (define character-1 (make-player id name difficulty level experience 1))
-    (display (format "\nParabéns, ~a, o seu personagem foi criado com sucesso!!\n" name))
-    (display (format "\n ID -> ~a / Name -> ~a / Difficulty -> ~a / Level -> ~a / Experience -> ~a /" id name difficulty level experience))
-    ; (show-character-list character-list)
+    (draw-player-hud character-1)
     (start-game character-1)
-    
-    ; Outras ações que você deseja executar com o player-1 podem vir aqui.
     ))))))
 
-
-
-(define (show-character-list character-list)
-  (draw-character-menu character-list))
-
-
-
-; Função para desenhar o menu dos personagens
-(define (draw-character-menu player)
-  (newline)
-  (display " ==========================================================================\n")
-  (display "                             Character Menu                                \n")
-  (display " ==========================================================================\n")
-  (newline)
-  (display " ==========================================================================\n")
-  (display "        ID      |    Character    |      Difficulty      |    Advance      \n")
-  (display " ==========================================================================\n")
-
-  (for-each
-   (lambda (player)
-     (display (format " ~a  |       ~a        |      ~a        |        ~a             \n"
-                      (player-id player)
-                      (player-name player)
-                      (player-difficulty player)
-                      (player-advance player))))
-   player)
-  (display " ==========================================================================\n")
-
-  (start-game player))
+; (struct level (number-level name concept answer reward-experience isComplete?) #:transparent)
+(define (save-progress player level)
+  (let ((new-id (player-id player)))
+  (let ((new-name (player-name player)))
+  (let ((new-difficulty (player-difficulty player)))
+  (let ((new-level (player-level player)))
+  (let ((new-experience (+ (player-experience player) (level-reward-experience level))))
+  (let ((new-stage (+ (player-advance player) 1)))
+  (define new-character (make-player new-id new-name new-difficulty new-level new-experience new-stage))
+    (draw-player-hud new-character)
+    (select-level new-character (+ (level-number-level level) 1))
+    )))))))
 
 
 (define (start-level level player)
@@ -276,16 +252,15 @@ será a personificação da sua jornada e conquistas.")
   (let ((user-answer (read-line)))
     (if (string=? user-answer (level-answer level))
         (begin
-          (correct-answer level player)
-          ; MODIFICAMOS O PLAYER E SEGUIMOS A DIANTE
+          (correct-answer player level)       
+          (save-progress player level)
           (select-level player (+ (level-number-level level) 1)))
         (begin
           (incorrect-answer)
           (select-level player (+ (level-number-level level) 0))))))
 
 
-(define (correct-answer level player)
-  (increment-experience level player)
+(define (correct-answer player level)
   (newline)
   (displayln "Resposta correta! Avançando para o próximo nível...")
   (newline))
@@ -294,6 +269,7 @@ será a personificação da sua jornada e conquistas.")
   (newline)
   (displayln "Resposta incorreta! Vamos tentar novamente...")
   (newline))
+  
 
 
 ; Função que inicializa o level atual do personagem
@@ -309,7 +285,7 @@ será a personificação da sua jornada e conquistas.")
 
 ; Função que inicializa o desafio
 (define (initialize-game player)
-  (display (format "\nVamos começar o desafio ~a!\n\n" (player-name player)))
+  (draw-player-hud player)
   (select-level player (player-advance player)))
 
 
@@ -426,7 +402,28 @@ será a personificação da sua jornada e conquistas.")
 ; 3. Definindo o personagem
 ; -------------------------------------------------------------------------------------------------------
 
-; (define player-1 (make-player 1 "Andrei" "Junior" 1 0 1))
+(define player-1 (make-player 1 "Andrei" "Junior" 1 0 1))
+
+(define (draw-player-hud player)
+  (newline)
+  (displayln " ------------------------------------------------------------------ ")
+  (displayln " |          Name          Level          XP          Stage        | ")
+  (display " ------------------------------------------------------------------ ")
+  (newline)
+  (display " |         ")
+  (display (player-name player))
+  (display "           ")
+  (display (player-level player))
+  (display "             ")
+  (display (player-experience player))
+  (display "             ")
+  (display (player-advance player))
+  (display "         |")
+  (newline)
+  (displayln " ------------------------------------------------------------------")
+  (newline))
+
+; (draw-player-hud player-1)
 
 
 (define level-1 
