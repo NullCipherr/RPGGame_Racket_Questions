@@ -83,11 +83,7 @@
   (display experience)
   (display " de experiência!!"))
 
-; 
-(define (gain-experience level player)
-  (cond
-    [(= (level-isComplete? level) 1) (increment-experience level player)]
-    [else (displayln "Level não foi finalizado !!! " )]))
+
 
 
 ; --------------------------------------------------------
@@ -140,19 +136,14 @@
 
 ; 
 (define (verify-difficulty-number difficulty)
-  (if (equal? difficulty "Fácil")
-        (set-difficulty difficulty)
-        (if (equal? difficulty "Médio")
-            (set-difficulty difficulty)
-            (if (equal? difficulty "Dificil")
-                (set-difficulty difficulty)
-                (if (= (string->number difficulty) 1)
-                    (verify-difficulty-number "Fácil")
-                    (if (= (string->number difficulty) 2)
-                        (verify-difficulty-number "Médio")
-                        (if (= (string->number difficulty) 3)
-                            (verify-difficulty-number "Dificil")
-                            (error "Dificuldade inválida!"))))))))
+  (cond [(equal? difficulty "Fácil") (set-difficulty difficulty)]
+        [(equal? difficulty "Médio") (set-difficulty difficulty)]
+        [(equal? difficulty "Dificil") (set-difficulty difficulty)]
+        [(= (string->number difficulty) 1) (verify-difficulty-number "Fácil")]
+        [(= (string->number difficulty) 2) (verify-difficulty-number "Médio")]
+        [(= (string->number difficulty) 3) (verify-difficulty-number "Dificil")]
+        [else (error "Dificuldade inválida!")]))
+
 
 ; ------------------------------------------------------------------------------------------------------------------- ;
 
@@ -192,6 +183,12 @@ será a personificação da sua jornada e conquistas.")
     ((= (string->number option) 1) (initialize-game player))
     (else (start-game player)))))
 
+(define (get-advance difficulty)
+  (cond [(equal? difficulty "Fácil") 1]
+        [(equal? difficulty "Médio") 4]
+        [(equal? difficulty "Dificil") 7]
+        [else (error "ERROR DE DIFICULDADES HAHA!")]))
+
 
 
 ; Função para criar o personagem
@@ -215,15 +212,20 @@ será a personificação da sua jornada e conquistas.")
 
   (let ((difficulty_temp (read-line)))
   (let ((difficulty (verify-difficulty-number difficulty_temp)))
+  (let ((advance (get-advance difficulty)))
+    
 
   (let ((level 1))
   (let ((experience 0))
   
   
-  (define character-1 (make-player id name difficulty level experience 1))
+  (define character-1 (make-player id name difficulty level experience advance))
     (draw-player-hud character-1)
     (start-game character-1)
-    ))))))
+    )))))))
+
+
+
 
 ; (struct level (number-level name concept answer reward-experience isComplete?) #:transparent)
 (define (save-progress player level)
@@ -253,7 +255,6 @@ será a personificação da sua jornada e conquistas.")
     (if (string=? user-answer (level-answer level))
         (begin
           (correct-answer player level)       
-          (save-progress player level)
           (select-level player (+ (level-number-level level) 1)))
         (begin
           (incorrect-answer)
@@ -263,23 +264,48 @@ será a personificação da sua jornada e conquistas.")
 (define (correct-answer player level)
   (newline)
   (displayln "Resposta correta! Avançando para o próximo nível...")
-  (newline))
+  (newline)
+  (displayln "Digite 1 para continuar")
+  (let ((x (read-line)))
+  (if (= (string->number x) 1)
+        (save-progress player level)
+        (correct-answer player level)
+        )))
+
 
 (define (incorrect-answer)
   (newline)
   (displayln "Resposta incorreta! Vamos tentar novamente...")
-  (newline))
-  
+  (newline)
+  (displayln "Digite 1 para continuar")
+  (let ((x (read-line)))
+  (if (= (string->number x) 1)
+        1
+        2
+        )))
 
 
 ; Função que inicializa o level atual do personagem
 (define (select-level player advance)
   (cond
-    ((= advance 1) (start-level level-1 player))
-    ((= advance 2) (start-level level-2 player))
-    ((= advance 3) (start-level level-3 player))
-    ((= advance 4) (display "\nLevel 4"))
-    (else (display "\nVocê concluiu todos os níveis da dificuldade (DIFFICULTY) !!"))))
+    ((equal? (player-difficulty player) "Fácil")
+     (cond
+      ((= advance 1) (start-level level-1-easy player))
+      ((= advance 2) (start-level level-2-easy player))
+      ((= advance 3) (start-level level-3-easy player))))
+
+    ((equal? (player-difficulty player) "Médio")
+     (cond
+      ((= advance 4) (start-level level-1-medium player))
+      ((= advance 5) (start-level level-2-medium player))
+      ((= advance 6) (start-level level-3-medium player))))
+
+    ((equal? (player-difficulty player) "Difícil")
+     (cond
+      ((= advance 7) (start-level level-1-hard player))
+      ((= advance 8) (start-level level-2-hard player))
+      ((= advance 9) (start-level level-3-hard player))))))
+
 
 
 
@@ -426,7 +452,7 @@ será a personificação da sua jornada e conquistas.")
 ; (draw-player-hud player-1)
 
 
-(define level-1 
+(define level-1-easy 
   (level 1 
          "Início da Jornada" 
          "Você encontra-se em uma vila pacífica, onde os aldeões estão enfrentando um desafio. Uma criatura misteriosa deixou cair uma carta com a equação mágica escrita: '(= x 5)'. Os anciãos da vila acreditam que resolver essa equação trará bênçãos e fortalecerá suas habilidades mágicas. Você aceita o desafio e prepara-se para iniciar sua jornada, enfrentando o primeiro enigma mágico." 
@@ -434,7 +460,7 @@ será a personificação da sua jornada e conquistas.")
          50 
          false))
 
-(define level-2 
+(define level-2-easy  
   (level 2 
          "A Floresta Encantada" 
          "Após resolver o primeiro enigma, você adentra uma floresta encantada. Aqui, as árvores sussurram enigmas e os riachos guardam segredos mágicos. Um elfo sábio apresenta-lhe o desafio: 'Some 3 ao valor de y'. Decifre esta expressão e prove sua astúcia para avançar na jornada." 
@@ -442,12 +468,60 @@ será a personificação da sua jornada e conquistas.")
          75 
          false))
 
-(define level-3 
+(define level-3-easy  
   (level 3 
          "Torre dos Magos" 
          "Você emerge da floresta em direção a uma torre majestosa. Os magos que a habitam testarão suas habilidades com a magia das funções. Eles propõem o desafio: '(define (square n) (* n n))'. Domine esta arte mágica para desbloquear o próximo nível de poder." 
          "(define (square n) (* n n))" 
-         100 
+         125 
+         false))
+
+(define level-1-medium
+  (level 4
+         "Despertar da Magia"
+         "Em um reino distante, onde a magia adormecida aguarda despertar, você é convocado para resolver o enigma mágico. A mensagem perdida revela: '(if (< x 5) 'Iniciante 'Mestre)'. Os sábios do reino acreditam que desvendar este mistério trará à tona poderes mágicos ocultos. Aceite o desafio e embarque na jornada mágica, enfrentando o primeiro enigma."
+         "(if (< x 5) 'Iniciante 'Mestre)"
+         50
+         false))
+
+(define level-2-medium
+  (level 5
+         "Travessia da Sombra Verde"
+         "Após desvendar o enigma inicial, você se aventura através da Sombra Verde, uma floresta encantada envolta em mistérios. Árvores sussurram enigmas e riachos guardam segredos. Um guardião élfico apresenta o desafio: '(if (> y 0) 'Luz 'Escuridão)'. Decifre esta expressão e prove sua astúcia para avançar na jornada mágica."
+         "(if (> y 0) 'Luz 'Escuridão)"
+         75
+         false))
+
+(define level-3-medium  
+  (level 6 
+         "Torre dos Magos" 
+         "Você emerge da floresta em direção a uma torre majestosa. Os magos que a habitam testarão suas habilidades com a magia das funções. Eles propõem o desafio: '(define (square n) (* n n))'. Domine esta arte mágica para desbloquear o próximo nível de poder." 
+         "(define (square n) (* n n))" 
+         125 
+         false))
+
+(define level-1-hard 
+  (level 7 
+         "Início da Jornada PIKA 7" 
+         "Você encontra-se em uma vila pacífica, onde os aldeões estão enfrentando um desafio. Uma criatura misteriosa deixou cair uma carta com a equação mágica escrita: '(= x 5)'. Os anciãos da vila acreditam que resolver essa equação trará bênçãos e fortalecerá suas habilidades mágicas. Você aceita o desafio e prepara-se para iniciar sua jornada, enfrentando o primeiro enigma mágico." 
+         "(= x 5)" 
+         50 
+         false))
+
+(define level-2-hard  
+  (level 8 
+         "A Floresta Encantada PIKA 8" 
+         "Após resolver o primeiro enigma, você adentra uma floresta encantada. Aqui, as árvores sussurram enigmas e os riachos guardam segredos mágicos. Um elfo sábio apresenta-lhe o desafio: 'Some 3 ao valor de y'. Decifre esta expressão e prove sua astúcia para avançar na jornada." 
+         "(+ y 3)" 
+         75 
+         false))
+
+(define level-3-hard  
+  (level 9 
+         "Torre dos Magos PIKA 9" 
+         "Você emerge da floresta em direção a uma torre majestosa. Os magos que a habitam testarão suas habilidades com a magia das funções. Eles propõem o desafio: '(define (square n) (* n n))'. Domine esta arte mágica para desbloquear o próximo nível de poder." 
+         "(define (square n) (* n n))" 
+         125 
          false))
 
 (menu-game)
