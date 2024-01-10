@@ -22,16 +22,15 @@
 ; role: Este campo representa a função ou papel do personagem no jogo, como "guerreiro", "mago", etc.
 ; level: Este campo indica o nível atual do personagem.
 ; experience: Este campo representa a quantidade de experiência acumulada pelo personagem.
-(struct player (id name difficulty level experience advance) #:transparent)
+(struct player (id name role level experience advance) #:transparent)
 
 ; Estrutura que representa o level(nivel em questão).
 ; number-level : Este campo armazena o número do nível. Esse campo pode conter valores como 1, 2, 3, ..., n.
 ; name : Este campo armazena o nome atribuído ao nível. 
 ; concept : Armazena uma descrição breve ou conceito do que o nível representa. Pode ser uma explicação sobre os desafios que os jogadores enfrentarão ou os conhecimentos que adquirirão ao completar o nível.
 ; reward-experience : Este campo representa a quantidade de experiência que um jogador ganha ao completar o nível. Pode ser um valor numérico que os jogadores acumulam para avançar em seus próprios níveis ou para desbloquear recursos adicionais.
-; answer: Este campo armazena a resposta correta do nível.
 ; isComplete? : Um campo booleano que indica se o nível foi concluído ou não. Se o valor for verdadeiro, significa que o jogador concluiu com sucesso o nível; se for falso, indica que o nível ainda está em andamento ou não foi iniciado.
-(struct level (number-level name concept answer reward-experience isComplete?) #:transparent)
+(struct level (number-level name concept reward-experience isComplete?) #:transparent)
 
 
 ; ===================================================================================================================================================
@@ -51,8 +50,20 @@
   ; Cada elemento da lista é uma cons célula que associa uma chave simbólica ao valor correspondente.
   (player id name role level experience advance))
 
+; Lista inicial vazia
+(define character-list '())
+
+; (add-character-list) : Adiciona um jogador à lista de jogadores.
+;
+; Parâmetros:
+;   - character : jogador a ser adicionado.
+;   - character-list : lista de jogadores existente.
+;
+(define (add-character-list character)
+  (cons character character-list))
+
 ; Inicializa o contador de criação de personagens
-(define character-counter 0)
+(define characters-counter 0)
 
 
 ; --------------------------------------------------------
@@ -66,25 +77,21 @@
 
 ;
 (define (notify-level-up level)
-  (newline)
   (display "Parabéns!! Você avançou para o nível ")(display level))
 
 ; Função para incrementar o valor da experiencia do personagem(LevelXP --> Player)
 (define (increment-experience level player)
   ; Função para incrementar a experiência do jogador ao completar um nível
-   ; Verificação
+  (if (level-isComplete? level) ; Verificação
       (+ (player-experience player) (level-reward-experience level))
-      (notify-increment-experience (level-reward-experience level))
+      (notify-increment-experience))
       (begin
         (displayln "O level não foi completado!!")
         (player-experience player)))
 
 ; Função que incrementa a expriência do personagem.
 (define (notify-increment-experience experience)
-  (newline)
-  (display "Parabéns!! Você recebeu " )
-  (display experience)
-  (display " de experiência!!"))
+  (display "Parabéns!! Você recebeu ~a de experiência" experience))
 
 ; 
 (define (gain-experience level player)
@@ -97,6 +104,13 @@
 ; Seção : Desafio
 ; --------------------------------------------------------
 
+(define (initialize-challenge level) ; Função para iniciar um novo desafio
+  (displayln (string-append "Iniciando o desafio: " (level-name level)))
+  (displayln (string-append "Conceito: " (level-concept level)))
+  (displayln "Boa sorte!"))
+
+
+
 
 ; Função para marcar um desafio como completado
 (define (complete-level level)
@@ -106,14 +120,21 @@
 
 
 
+;
+(define (write-code code)
+  ; Função para permitir que o jogador escreva código
+  (displayln (string-append "Código inserido: " code)))
+
+
+
 (define (set-difficulty difficulty)
-  ;(display (format "A dificuldade foi setada em ~a \n" difficulty))
-  (if (equal? difficulty "Fácil")
-        "Fácil"
-        (if (equal? difficulty "Médio")
-            "Médio"
-            (if (equal? difficulty "Dificil")
-                "Dificil"
+  (display (format "A dificuldade foi setada em ~a \n" difficulty))
+  (if (equal? difficulty "Junior")
+        "Junior"
+        (if (equal? difficulty "Pleno")
+            "Pleno"
+            (if (equal? difficulty "Senior")
+                "Senior"
                 (error "Comando inválido!")))))
 
 
@@ -122,42 +143,46 @@
 ; Seção : Jogo
 ; --------------------------------------------------------
 
+;
+(define (length-character-list character-list)
+  (if (null? character-list)
+      0
+      (+ 1 (length-character-list (cdr character-list)))))
 
 ; Função gráfica p/ selecionar a role(JuniorDaCorte, PlenoCondês, KingSenior )
-(define (display-select-difficulty name)
+(define (display-select-role name)
   (display "\n ==========================================================================")
-  (display (format "\n    Saudações ~a, a seguir selecione o seu nível de dificuldade, ao
-    qual corresponderá aos desafios que você deseja enfrentar no futuro!.
-  
-  (Para saber mais sobre os níveis de dificuldade, dê uma olhada no Guia)" name))
+  (display (format "\n    Saudações ~a, a seguir selecione a sua classe,ao qual corresponde
+  ao nivel de dificuldade que o usuario deseja enfrentar no futuro!.
+  (Para saber mais sobre as classes, sugiro que dê uma olhada no Guide)" name))
   (newline)
   (display " ==========================================================================\n")
-  (displayln "                               1. Fácil                                    ")
-  (displayln "                               2. Médio                                    ")
-  (displayln "                               3. Dificil                                  ")
+  (displayln "                               1. Junior                                   ")
+  (displayln "                               2. Pleno                                    ")
+  (displayln "                               3. Senior                                   ")
   (display " ==========================================================================\n")
   (displayln "                               0. Guide                                    ")
   (display " ==========================================================================\n")
   (newline))
 
 
-; 
-(define (verify-difficulty-number difficulty)
-  (if (equal? difficulty "Fácil")
-        (set-difficulty difficulty)
-        (if (equal? difficulty "Médio")
-            (set-difficulty difficulty)
-            (if (equal? difficulty "Dificil")
-                (set-difficulty difficulty)
-                (if (= (string->number difficulty) 1)
-                    (verify-difficulty-number "Fácil")
-                    (if (= (string->number difficulty) 2)
-                        (verify-difficulty-number "Médio")
-                        (if (= (string->number difficulty) 3)
-                            (verify-difficulty-number "Dificil")
-                            (error "Dificuldade inválida!"))))))))
 
-; ------------------------------------------------------------------------------------------------------------------- ;
+(define (verify-role-number role)
+  (if (equal? role "Junior")
+        (set-difficulty role)
+        (if (equal? role "Pleno")
+            (set-difficulty role)
+            (if (equal? role "Senior")
+                (set-difficulty role)
+                (if (= (string->number role) 1)
+                    (verify-role-number "Junior")
+                    (if (= (string->number role) 2)
+                        (verify-role-number "Pleno")
+                        (if (= (string->number role) 3)
+                            (verify-role-number "Senior")
+                            (error "Classe inválida!"))))))))
+
+
 
 ; Função gráfica do escolher nome.
 (define (display-select-name)
@@ -182,30 +207,29 @@ será a personificação da sua jornada e conquistas.")
   (display "Parabéns, você está indo para a fase ")
   (displayln (level-number-level level)))
 
-
-
 ; Função para selecionar o personagem na lista de personagem
-; int -> int
-;
-(define (start-game player)
-  (newline)
-  (display "\n 1. Começar os desafios \n")
-  (display "-> ")(let ((option (read-line)))
+(define (select-character)
+  (display "\n Selecione o seu personagem !! \n")
+  (display "-> ")(let ((selected-character (read-line)))
   (cond
-    ((= (string->number option) 1) (initialize-game player))
-    (else (start-game player)))))
+    ((= (string->number selected-character) 1) 1)
+    ((= (string->number selected-character) 2) 2)
+    ((= (string->number selected-character) 3) 3)
+    (else (display "Error!!")))))
 
 
 
 ; Função para criar o personagem
 ; id : Define o 'id' do personagem.
 ; (set-name) : Define o nome do personagem.
-; (set-difficulty) : Define a dificuldade do personagem.
+; (set-role) : Define a classa do personagem.
 (define (create-player)
   (define id
     (cond
-      ((= character-counter 0) 1)
-      (else (error "Você já criou o seu personagem!!"))
+      ((= characters-counter 0) 1)
+      ((= characters-counter 1) 2)
+      ((= characters-counter 2) 3)
+      (else (error "Limite de criação de personagem atingido \n 3/3"))
      ))
 
   (display-select-name)
@@ -213,29 +237,34 @@ será a personificação da sua jornada e conquistas.")
   (let ((name (read-line)))
   (if (> (string-length name) 15) (error "O nome não pode ser maior do que 15 caracteres!!") 0)
 
-  (display-select-difficulty name)
-  (display "\n Difficulty -> ")
+  (display-select-role name)
+  (display "\n Role -> ")
 
-  (let ((difficulty_temp (read-line)))
-  (let ((difficulty (verify-difficulty-number difficulty_temp)))
+  (let ((role_temp (read-line)))
+  (let ((role (verify-role-number role_temp)))
 
   (let ((level 1))
   (let ((experience 0))
   
   
-  (define character-1 (make-player id name difficulty level experience 1))
-    (display (format "\nParabéns, ~a, o seu personagem foi criado com sucesso!!\n" name))
-    (display (format "\n ID -> ~a / Name -> ~a / Difficulty -> ~a / Level -> ~a / Experience -> ~a /" id name difficulty level experience))
-    ; (show-character-list character-list)
-    (start-game character-1)
+  (define character-1 (make-player id name role level experience 1))
+    ; (display (format "\nParabéns, ~a, o seu personagem foi criado com sucesso!!\n" name))
+    ; (display (format "\n ID -> ~a / Name -> ~a / Role -> ~a / Level -> ~a / Experience -> ~a /" id name role level experience))
+    ; (display (format "\n Contador de personagem -> ~a" id))
+    ; (display (format "Personagem --> ~a" character-1))
+    ; (displayln "Adicionando personagem a lista de personagem...")
+    (define character-list (add-character-list character-1))
+    ; (displayln "Personagem adicionado com sucesso!!")
+    (display (format "Lista de personagem --> ~a" character-list))
+    (show-character-list character-list)
     
     ; Outras ações que você deseja executar com o player-1 podem vir aqui.
     ))))))
 
 
-
 (define (show-character-list character-list)
   (draw-character-menu character-list))
+
 
 
 
@@ -247,7 +276,7 @@ será a personificação da sua jornada e conquistas.")
   (display " ==========================================================================\n")
   (newline)
   (display " ==========================================================================\n")
-  (display "        ID      |    Character    |      Difficulty      |    Advance      \n")
+  (display "        ID      |    Character    |      Role      |    Advance            \n")
   (display " ==========================================================================\n")
 
   (for-each
@@ -255,62 +284,17 @@ será a personificação da sua jornada e conquistas.")
      (display (format " ~a  |       ~a        |      ~a        |        ~a             \n"
                       (player-id player)
                       (player-name player)
-                      (player-difficulty player)
+                      (player-role player)
                       (player-advance player))))
    player)
   (display " ==========================================================================\n")
 
-  (start-game player))
+  (select-character))
 
 
-(define (start-level level player)
-  (displayln "------------------------------------------------------------------------")
-  (displayln (format "Nível ~a: ~a" (level-number-level level) (level-name level)))
-  (newline)
-  (displayln (level-concept level))
-  (displayln (format "Recompensa de Experiência: ~a" (level-reward-experience level)))
-  (displayln "------------------------------------------------------------------------")
-
-  (display "Digite a sua resposta: ")
-  (flush-output)
-  (let ((user-answer (read-line)))
-    (if (string=? user-answer (level-answer level))
-        (begin
-          (correct-answer level player)
-          ; MODIFICAMOS O PLAYER E SEGUIMOS A DIANTE
-          (select-level player (+ (level-number-level level) 1)))
-        (begin
-          (incorrect-answer)
-          (select-level player (+ (level-number-level level) 0))))))
-
-
-(define (correct-answer level player)
-  (increment-experience level player)
-  (newline)
-  (displayln "Resposta correta! Avançando para o próximo nível...")
-  (newline))
-
-(define (incorrect-answer)
-  (newline)
-  (displayln "Resposta incorreta! Vamos tentar novamente...")
-  (newline))
-
-
-; Função que inicializa o level atual do personagem
-(define (select-level player advance)
-  (cond
-    ((= advance 1) (start-level level-1 player))
-    ((= advance 2) (start-level level-2 player))
-    ((= advance 3) (start-level level-3 player))
-    ((= advance 4) (display "\nLevel 4"))
-    (else (display "\nVocê concluiu todos os níveis da dificuldade (DIFFICULTY) !!"))))
-
-
-
-; Função que inicializa o desafio
-(define (initialize-game player)
-  (display (format "\nVamos começar o desafio ~a!\n\n" (player-name player)))
-  (select-level player (player-advance player)))
+; Função que inicializa
+(define(initialize-game)
+  (displayln "Seja muito bem-vindo ao desafio!"))
 
 
 
@@ -318,7 +302,7 @@ será a personificação da sua jornada e conquistas.")
 ; Função para inicializar o jogo.
 (define (initialize-create)
   ; Função para iniciar o jogo e apresentar a narrativa inicial.
-  (if (= character-counter 0)
+  (if (= characters-counter 0)
       (displayln "\nParece que você não criou nenhum personagem ainda, a seguir digite um para criarmos o seu guerreiro!! \n\n 1. Criar personagem \n")
       (displayln "\nBem-vindo de volta guerreiro")
   )
@@ -327,7 +311,7 @@ será a personificação da sua jornada e conquistas.")
   (let ((x (read-line)))
   (if (= (string->number x) 1)
         (create-player)
-        (initialize-create))))
+        (displayln "Comando inválido!"))))
 
 
 
@@ -342,14 +326,13 @@ será a personificação da sua jornada e conquistas.")
     ((= (string->number choose) 1) (initialize-create))
     ((= (string->number choose) 2) (print-help))
     ((= (string->number choose) 3) (print-credits))
-    ((= (string->number choose) 4) (error "Saindo..."))
-    (else (menu-game)))))
+    ((= (string->number choose) 4) (displayln "Saindo..."))
+    (else (menu-select)))))
 
 
 ; 1 --> OKAY
 ; Função do menu do jogo
 (define (menu-game)
-  (newline)
   (displayln " =========================================")
   (displayln "       Aventuras na Terra de Racket       ")
   (displayln " =========================================")
@@ -367,7 +350,6 @@ será a personificação da sua jornada e conquistas.")
 
 ; Função de ajuda - OKAY
 (define (print-help)
-  (newline)
   (displayln " =========================================")
   (displayln "         Bem-vindo ao menu de ajuda       ")
   (displayln " =========================================")
@@ -390,33 +372,18 @@ será a personificação da sua jornada e conquistas.")
 
 ; Função que imprime os créditos do jogo
 (define (print-credits)
+  (displayln " =========================================")
+  (displayln "    Seja muito bem vindo aos créditos.")
+  (displayln " =========================================")
   (newline)
-  (displayln "              =========================================")
-  (displayln "                 Seja muito bem vindo aos créditos.    ")
-  (displayln "              =========================================")
-  (newline)
-  (displayln "  Aventuras na terra Racket é um jogo educativo, desenvolvido para a matéria       ")
-  (displayln "  de Paradigma de Programação Lógica e Funcional do curso de ciência da computação ")
-  (displayln "  fornecido pela Universidade Estadual de Maringá.                                 ")
-  (newline)
-  (displayln "  A seguir o nome e o RA de cada integrante envolvido no desenvolvimento           ")
-  (newline)
-  (displayln "  -------------------------------------------------------------------------------- ")
-  (newline)
-  (displayln "               Andrei Roberto da Costa  ..... RA 107975                            ")
-  (newline)
-  (displayln "               João Gilberto Casagrande ..... RA 115682                            ")
-  (newline)
-  (displayln "  -------------------------------------------------------------------------------- ")
-  (newline)
-  (displayln "    1. Retornar ao menu")
+  (displayln "    1. Voltar à Aventura")
   (newline)
 
   (display "-> ")
   (let ((x (read-line)))
     (if (= (string->number x) 1)
         (menu-game)
-        (print-credits))))
+        (display "\n Comando inválido!"))))
 
 
 
@@ -427,30 +394,22 @@ será a personificação da sua jornada e conquistas.")
 ; -------------------------------------------------------------------------------------------------------
 
 ; (define player-1 (make-player 1 "Andrei" "Junior" 1 0 1))
+(define player-2 (make-player 2 "ZeroCool" "Senior" 1 0 1))
+(define player-3 (make-player 3 "NullCipherr" "Junior" 1 0 1))
+
+(define level-1(level 1 "Level 1" "Comparação" 50 true))
 
 
-(define level-1 
-  (level 1 
-         "Início da Jornada" 
-         "Você encontra-se em uma vila pacífica, onde os aldeões estão enfrentando um desafio. Uma criatura misteriosa deixou cair uma carta com a equação mágica escrita: '(= x 5)'. Os anciãos da vila acreditam que resolver essa equação trará bênçãos e fortalecerá suas habilidades mágicas. Você aceita o desafio e prepara-se para iniciar sua jornada, enfrentando o primeiro enigma mágico." 
-         "(= x 5)" 
-         50 
-         false))
+; (set-name)
+; (set-role)
 
-(define level-2 
-  (level 2 
-         "A Floresta Encantada" 
-         "Após resolver o primeiro enigma, você adentra uma floresta encantada. Aqui, as árvores sussurram enigmas e os riachos guardam segredos mágicos. Um elfo sábio apresenta-lhe o desafio: 'Some 3 ao valor de y'. Decifre esta expressão e prove sua astúcia para avançar na jornada." 
-         "(+ y 3)" 
-         75 
-         false))
+ (menu-game)
 
-(define level-3 
-  (level 3 
-         "Torre dos Magos" 
-         "Você emerge da floresta em direção a uma torre majestosa. Os magos que a habitam testarão suas habilidades com a magia das funções. Eles propõem o desafio: '(define (square n) (* n n))'. Domine esta arte mágica para desbloquear o próximo nível de poder." 
-         "(define (square n) (* n n))" 
-         100 
-         false))
+; (get-name player-1)
 
-(menu-game)
+; (draw-character-menu character-list)
+
+; (level-up player-1)
+
+  
+; (increment-experience level-1 player-1)
