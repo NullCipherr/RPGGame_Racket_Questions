@@ -71,11 +71,6 @@
   (+ (player-level player) 1)
   (notify-level-up (+ (player-level player) 1)))
 
-;
-(define (notify-level-up level)
-  (newline)
-  (display "Parabéns!! Você avançou para o nível ")(display level))
-
 ; Função que incrementa a expriência do personagem.
 (define (notify-increment-experience experience)
   (newline)
@@ -185,8 +180,8 @@ será a personificação da sua jornada e conquistas.")
 
 (define (get-advance difficulty)
   (cond [(equal? difficulty "Fácil") 1]
-        [(equal? difficulty "Médio") 4]
-        [(equal? difficulty "Dificil") 7]
+        [(equal? difficulty "Médio") 1]
+        [(equal? difficulty "Dificil") 1]
         [else (error "ERROR DE DIFICULDADES HAHA!")]))
 
 
@@ -225,6 +220,14 @@ será a personificação da sua jornada e conquistas.")
     )))))))
 
 
+;
+(define (notify-level-up level)
+  (newline)
+  (displayln " ***************************************************")
+  (displayln (format "  Parabéns!! Você avançou para o nível ~a" level))
+  (displayln " ***************************************************")
+  (newline))
+
 
 ; new-level
 ; - Verifica se o personagem atingiu a experience necessária para upar de nivel 1 -> 2 -> 3
@@ -254,6 +257,12 @@ será a personificação da sua jornada e conquistas.")
     [(= experience 600) #f] ; Não irá upar
     [else #f])) ; Não irá upar
 
+(define (verify-difficulty level)
+  (cond
+    [(= level 1) "Fácil"]
+    [(= level 2) "Médio"]
+    [(= level 3) "Dificil"]))
+
 
 
 ; new-experience
@@ -267,16 +276,24 @@ será a personificação da sua jornada e conquistas.")
       (let ((new-experience (+ (player-experience player) (level-reward-experience level))))
         (cond 
           [(verify-experience new-experience) 
-           (display "irá upar")]
+           (let ((new-level (verify-level (player-level player) new-experience)))
+             (notify-level-up new-level)
+
+             (let ((new-difficulty (verify-difficulty new-level)))
+
+               (let ((new-stage 1))
+
+                 (let ((new-character (make-player new-id new-name new-difficulty new-level 0 new-stage)))
+                   (draw-player-hud new-character)
+                   (select-level new-character new-difficulty new-stage)))))]
           [else 
-           (display "Não irá upar")])
-        (let ((new-level (verify-level (player-level player) new-experience)))
-          (displayln (format "O novo level é ~a" new-level))
-          (let ((new-difficulty (player-difficulty player)))
-            (let ((new-stage (+ (player-advance player) 1)))
-              (define new-character (make-player new-id new-name new-difficulty new-level new-experience new-stage))
-              (draw-player-hud new-character)
-              (select-level new-character (+ (level-number-level level) 1)))))))))
+           ; (display "Não irá upar")
+           (let ((new-level (player-level player))
+                 (new-difficulty (player-difficulty player))
+                 (new-stage (+ (player-advance player) 1)))
+             (let ((new-character (make-player new-id new-name new-difficulty new-level new-experience new-stage)))
+               (draw-player-hud new-character)
+               (select-level new-character new-difficulty new-stage)))])))))
 
 
 
@@ -294,10 +311,10 @@ será a personificação da sua jornada e conquistas.")
     (if (string=? user-answer (level-answer level))
         (begin
           (correct-answer player level)       
-          (select-level player (+ (level-number-level level) 1)))
+          (select-level player (player-difficulty player) (+ (player-advance player) 1)))
         (begin
           (incorrect-answer)
-          (select-level player (+ (level-number-level level) 0))))))
+          (select-level player (player-difficulty player) (player-advance player))))))
 
 
 (define (correct-answer player level)
@@ -325,25 +342,25 @@ será a personificação da sua jornada e conquistas.")
 
 
 ; Função que inicializa o level atual do personagem
-(define (select-level player advance)
+(define (select-level player difficulty stage)
   (cond
-    ((equal? (player-difficulty player) "Fácil")
+    ((equal? difficulty "Fácil")
      (cond
-      ((= advance 1) (start-level level-1-easy player))
-      ((= advance 2) (start-level level-2-easy player))
-      ((= advance 3) (start-level level-3-easy player))))
+      ((= stage 1) (start-level level-1-easy player))
+      ((= stage 2) (start-level level-2-easy player))
+      ((= stage 3) (start-level level-3-easy player))))
 
-    ((equal? (player-difficulty player) "Médio")
+    ((equal? difficulty "Médio")
      (cond
-      ((= advance 4) (start-level level-1-medium player))
-      ((= advance 5) (start-level level-2-medium player))
-      ((= advance 6) (start-level level-3-medium player))))
+      ((= stage 1) (start-level level-1-medium player))
+      ((= stage 2) (start-level level-2-medium player))
+      ((= stage 3) (start-level level-3-medium player))))
 
-    ((equal? (player-difficulty player) "Difícil")
+    ((equal? difficulty "Difícil")
      (cond
-      ((= advance 7) (start-level level-1-hard player))
-      ((= advance 8) (start-level level-2-hard player))
-      ((= advance 9) (start-level level-3-hard player))))))
+      ((= stage 1) (start-level level-1-hard player))
+      ((= stage 2) (start-level level-2-hard player))
+      ((= stage 3) (start-level level-3-hard player))))))
 
 
 
@@ -351,7 +368,7 @@ será a personificação da sua jornada e conquistas.")
 ; Função que inicializa o desafio
 (define (initialize-game player)
   (draw-player-hud player)
-  (select-level player (player-advance player)))
+  (select-level player (player-difficulty player) (player-advance player)))
 
 
 
@@ -471,21 +488,23 @@ será a personificação da sua jornada e conquistas.")
 
 (define (draw-player-hud player)
   (newline)
-  (displayln " ------------------------------------------------------------------ ")
-  (displayln " |          Name          Level          XP          Stage        | ")
-  (display " ------------------------------------------------------------------ ")
+  (displayln " ----------------------------------------------------------------------------- ")
+  (displayln " |          Name          Level          XP          Stage        Difficulty | ")
+  (display   " ----------------------------------------------------------------------------- ")
   (newline)
-  (display " |         ")
+  (display "          ")
   (display (player-name player))
-  (display "           ")
+  (display "            ")
   (display (player-level player))
   (display "             ")
   (display (player-experience player))
-  (display "             ")
+  (display "            ")
   (display (player-advance player))
-  (display "         |")
+  (display "           ")
+  (display (player-difficulty player))
+  (display "       ")
   (newline)
-  (displayln " ------------------------------------------------------------------")
+  (displayln " -----------------------------------------------------------------------------")
   (newline))
 
 
