@@ -172,17 +172,14 @@ será a personificação da sua jornada e conquistas.")
 ;
 (define (start-game player)
   (newline)
-  (display (format " Bem Vindo ~a, \n Digite 1 para começar o desafio, Boa Sorte!! \n\n" (player-name player)))
+  (display (format " Bem Vindo ~a, \n
+             1. Começar estágios
+             2. Mostrar estágios desbloqueados
+             3. Mostrar Achivements \n\n" (player-name player)))
   (display "-> ")(let ((option (read-line)))
   (cond
     ((= (string->number option) 1) (initialize-game player))
     (else (start-game player)))))
-
-(define (get-advance difficulty)
-  (cond [(equal? difficulty "Fácil") 1]
-        [(equal? difficulty "Médio") 1]
-        [(equal? difficulty "Dificil") 1]
-        [else (error "ERROR DE DIFICULDADES HAHA!")]))
 
 
 
@@ -207,7 +204,7 @@ será a personificação da sua jornada e conquistas.")
 
   (let ((difficulty_temp (read-line)))
   (let ((difficulty (verify-difficulty-number difficulty_temp)))
-  (let ((advance (get-advance difficulty)))
+  (let ((advance 1)) ; Independente da dificuldade, o player começará no stage=1, de sua respectiva dificuldade.
     
 
   (let ((level 1))
@@ -243,25 +240,33 @@ será a personificação da sua jornada e conquistas.")
   (+ level 1))
 
 
-(define (verify-level level experience)
+(define (verify-level level experience difficulty)
   (cond
-    [(and (= level 1) (= experience 200)) (increment-level level)]
-    [(and (= level 2) (= experience 400)) (increment-level level)]
-    [(and (= level 3) (= experience 600)) level]
+    [(and (string=? difficulty "Fácil") (and (= level 1) (= experience 200)) (increment-level level))] ; Fácil
+    [(and (string=? difficulty "Médio") (and (= level 1) (= experience 400)) (increment-level level))]
+    [(and (string=? difficulty "Médio") (and (= level 2) (= experience 400)) (increment-level level))]; Fácil  1 -> 2
+    [(and (string=? difficulty "Dificil") (= level 1) (= experience 600)) level]
+    [(and (string=? difficulty "Dificil") (= level 2) (= experience 600)) level]
+    [(and (string=? difficulty "Dificil") (= level 3) (= experience 600)) level]; Dificil
     [else level]))
 
-(define (verify-experience experience)
+(define (verify-experience experience difficulty)
   (cond
-    [(= experience 200) #t] ; Irá upar
-    [(= experience 400) #t] ; Irá upar
-    [(= experience 600) #f] ; Não irá upar
+    [(and(string=? difficulty "Fácil") (= experience 200)) #t] ; Irá upar
+    [(and(string=? difficulty "Médio") (= experience 400)) #t] ; Irá upar
+    [(and(string=? difficulty "Dificil") (= experience 600)) #f] ; Não irá upar
     [else #f])) ; Não irá upar
 
-(define (verify-difficulty level)
+
+(define (verify-difficulty level difficulty)
   (cond
-    [(= level 1) "Fácil"]
-    [(= level 2) "Médio"]
-    [(= level 3) "Dificil"]))
+    [(and (string=? difficulty "Fácil") (= level 1)) "Fácil"]
+    [(and (string=? difficulty "Médio") (= level 1)) "Médio"]
+    [(and (string=? difficulty "Médio") (= level 2)) "Médio"]
+    [(and (string=? difficulty "Médio") (= level 3)) "Dificil"]
+    [(and (string=? difficulty "Dificil") (= level 1)) "Dificil"]
+    [(and (string=? difficulty "Dificil") (= level 2)) "Dificil"]
+    [(and (string=? difficulty "Dificil") (= level 3)) "Dificil"]))
 
 
 
@@ -275,11 +280,11 @@ será a personificação da sua jornada e conquistas.")
     (let ((new-name (player-name player)))
       (let ((new-experience (+ (player-experience player) (level-reward-experience level))))
         (cond 
-          [(verify-experience new-experience) 
-           (let ((new-level (verify-level (player-level player) new-experience)))
+          [(verify-experience new-experience (player-difficulty player)) 
+           (let ((new-level (verify-level (player-level player) new-experience (player-difficulty player))))
              (notify-level-up new-level)
 
-             (let ((new-difficulty (verify-difficulty new-level)))
+             (let ((new-difficulty (verify-difficulty new-level (player-difficulty player))))
 
                (let ((new-stage 1))
 
