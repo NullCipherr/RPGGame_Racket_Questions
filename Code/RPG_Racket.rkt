@@ -226,19 +226,58 @@ será a personificação da sua jornada e conquistas.")
 
 
 
+; new-level
+; - Verifica se o personagem atingiu a experience necessária para upar de nivel 1 -> 2 -> 3
+; - Level 1 - 200 - 50 - 50 - 100
+; - Level 2 - 400 - 50 - 150 - 200
+; - Level 3 - 600 - 150 - 150 - 300
+
+; O player está no nivel 1 com 200 de xp -> upa
+; O player está no nivel 2 com 400 de xp -> upa
+; O player está no nivel 3 com 600 de xp -> não upa
+
+(define (increment-level level)
+  (+ level 1))
+
+
+(define (verify-level level experience)
+  (cond
+    [(and (= level 1) (= experience 200)) (increment-level level)]
+    [(and (= level 2) (= experience 400)) (increment-level level)]
+    [(and (= level 3) (= experience 600)) level]
+    [else level]))
+
+(define (verify-experience experience)
+  (cond
+    [(= experience 200) #t] ; Irá upar
+    [(= experience 400) #t] ; Irá upar
+    [(= experience 600) #f] ; Não irá upar
+    [else #f])) ; Não irá upar
+
+
+
+; new-experience
+; 
+
 
 ; (struct level (number-level name concept answer reward-experience isComplete?) #:transparent)
 (define (save-progress player level)
   (let ((new-id (player-id player)))
-  (let ((new-name (player-name player)))
-  (let ((new-difficulty (player-difficulty player)))
-  (let ((new-level (player-level player)))
-  (let ((new-experience (+ (player-experience player) (level-reward-experience level))))
-  (let ((new-stage (+ (player-advance player) 1)))
-  (define new-character (make-player new-id new-name new-difficulty new-level new-experience new-stage))
-    (draw-player-hud new-character)
-    (select-level new-character (+ (level-number-level level) 1))
-    )))))))
+    (let ((new-name (player-name player)))
+      (let ((new-experience (+ (player-experience player) (level-reward-experience level))))
+        (cond 
+          [(verify-experience new-experience) 
+           (display "irá upar")]
+          [else 
+           (display "Não irá upar")])
+        (let ((new-level (verify-level (player-level player) new-experience)))
+          (displayln (format "O novo level é ~a" new-level))
+          (let ((new-difficulty (player-difficulty player)))
+            (let ((new-stage (+ (player-advance player) 1)))
+              (define new-character (make-player new-id new-name new-difficulty new-level new-experience new-stage))
+              (draw-player-hud new-character)
+              (select-level new-character (+ (level-number-level level) 1)))))))))
+
 
 
 (define (start-level level player)
@@ -428,7 +467,7 @@ será a personificação da sua jornada e conquistas.")
 ; 3. Definindo o personagem
 ; -------------------------------------------------------------------------------------------------------
 
-(define player-1 (make-player 1 "Andrei" "Junior" 1 0 1))
+(define player-1 (make-player 1 "Andrei" "Junior" 1 200 1))
 
 (define (draw-player-hud player)
   (newline)
@@ -449,8 +488,6 @@ será a personificação da sua jornada e conquistas.")
   (displayln " ------------------------------------------------------------------")
   (newline))
 
-; (draw-player-hud player-1)
-
 
 (define level-1-easy 
   (level 1 
@@ -465,7 +502,7 @@ será a personificação da sua jornada e conquistas.")
          "A Floresta Encantada" 
          "Após resolver o primeiro enigma, você adentra uma floresta encantada. Aqui, as árvores sussurram enigmas e os riachos guardam segredos mágicos. Um elfo sábio apresenta-lhe o desafio: 'Some 3 ao valor de y'. Decifre esta expressão e prove sua astúcia para avançar na jornada." 
          "(+ y 3)" 
-         75 
+         50 
          false))
 
 (define level-3-easy  
@@ -473,7 +510,7 @@ será a personificação da sua jornada e conquistas.")
          "Torre dos Magos" 
          "Você emerge da floresta em direção a uma torre majestosa. Os magos que a habitam testarão suas habilidades com a magia das funções. Eles propõem o desafio: '(define (square n) (* n n))'. Domine esta arte mágica para desbloquear o próximo nível de poder." 
          "(define (square n) (* n n))" 
-         125 
+         100 
          false))
 
 (define level-1-medium
@@ -481,7 +518,7 @@ será a personificação da sua jornada e conquistas.")
          "Despertar da Magia"
          "Em um reino distante, onde a magia adormecida aguarda despertar, você é convocado para resolver o enigma mágico. A mensagem perdida revela: '(if (< x 5) 'Iniciante 'Mestre)'. Os sábios do reino acreditam que desvendar este mistério trará à tona poderes mágicos ocultos. Aceite o desafio e embarque na jornada mágica, enfrentando o primeiro enigma."
          "(if (< x 5) 'Iniciante 'Mestre)"
-         50
+         100
          false))
 
 (define level-2-medium
@@ -489,7 +526,7 @@ será a personificação da sua jornada e conquistas.")
          "Travessia da Sombra Verde"
          "Após desvendar o enigma inicial, você se aventura através da Sombra Verde, uma floresta encantada envolta em mistérios. Árvores sussurram enigmas e riachos guardam segredos. Um guardião élfico apresenta o desafio: '(if (> y 0) 'Luz 'Escuridão)'. Decifre esta expressão e prove sua astúcia para avançar na jornada mágica."
          "(if (> y 0) 'Luz 'Escuridão)"
-         75
+         100
          false))
 
 (define level-3-medium  
@@ -497,7 +534,7 @@ será a personificação da sua jornada e conquistas.")
          "Torre dos Magos" 
          "Você emerge da floresta em direção a uma torre majestosa. Os magos que a habitam testarão suas habilidades com a magia das funções. Eles propõem o desafio: '(define (square n) (* n n))'. Domine esta arte mágica para desbloquear o próximo nível de poder." 
          "(define (square n) (* n n))" 
-         125 
+         200 
          false))
 
 (define level-1-hard 
@@ -505,7 +542,7 @@ será a personificação da sua jornada e conquistas.")
          "Início da Jornada PIKA 7" 
          "Você encontra-se em uma vila pacífica, onde os aldeões estão enfrentando um desafio. Uma criatura misteriosa deixou cair uma carta com a equação mágica escrita: '(= x 5)'. Os anciãos da vila acreditam que resolver essa equação trará bênçãos e fortalecerá suas habilidades mágicas. Você aceita o desafio e prepara-se para iniciar sua jornada, enfrentando o primeiro enigma mágico." 
          "(= x 5)" 
-         50 
+         150 
          false))
 
 (define level-2-hard  
@@ -513,7 +550,7 @@ será a personificação da sua jornada e conquistas.")
          "A Floresta Encantada PIKA 8" 
          "Após resolver o primeiro enigma, você adentra uma floresta encantada. Aqui, as árvores sussurram enigmas e os riachos guardam segredos mágicos. Um elfo sábio apresenta-lhe o desafio: 'Some 3 ao valor de y'. Decifre esta expressão e prove sua astúcia para avançar na jornada." 
          "(+ y 3)" 
-         75 
+         150 
          false))
 
 (define level-3-hard  
@@ -521,7 +558,9 @@ será a personificação da sua jornada e conquistas.")
          "Torre dos Magos PIKA 9" 
          "Você emerge da floresta em direção a uma torre majestosa. Os magos que a habitam testarão suas habilidades com a magia das funções. Eles propõem o desafio: '(define (square n) (* n n))'. Domine esta arte mágica para desbloquear o próximo nível de poder." 
          "(define (square n) (* n n))" 
-         125 
+         300 
          false))
+
+; (verify-level player-1)
 
 (menu-game)
