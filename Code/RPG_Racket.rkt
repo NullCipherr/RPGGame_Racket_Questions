@@ -78,6 +78,15 @@
   (void))
 
 
+;; String -> String
+;; Função que tem como uma entrada uma string e retorna uma string sem os espaços em branco.
+;; (define (remove-spaces str) ...)
+;;
+(define (remove-spaces str)
+  (string->list str) ; Converte a string para uma lista de caracteres
+  (list->string (filter (lambda (c) (not (char-whitespace? c))) (string->list str))))
+
+
 
 
 
@@ -87,7 +96,7 @@
 ;;
 (define (write string)
   ;; Define um tempo de atraso de 0.03 segundos entre cada caractere impresso
-  (define time 0)
+  (define time-write 0.0025)
   ;; Converte a string em uma lista de caracteres
   (define chars (string->list string))
   ;; Define uma função auxiliar 'loop' que recebe uma lista de caracteres
@@ -99,7 +108,7 @@
       ;; Esvazia o buffer de saída para garantir que o caractere seja exibido imediatamente
       (flush-output)
       ;; Pausa a execução do programa pelo tempo definido
-      (sleep time)
+      (sleep time-write)
       ;; Chama a função 'loop' recursivamente com o restante da lista de caracteres
       (loop (rest chars))))
   ;; Chama a função 'loop' com a lista de caracteres
@@ -373,22 +382,24 @@
 
   (newline)
   (displayln " ╔════════════════════════════════════════════════════════════════════════════════════════╗ ")
-  (displayln (format " ║     Saudações ~a, a seleção do nível de dificuldade é um momento crucial, pois ║
- ║   determinará a intensidade e a complexidade das situações que você enfrentará.            ║
- ║                                                                                            ║
- ║   Cada opção oferece uma experiência única, adaptada ao seu estilo de jogo e apetite       ║
- ║   por desafios. Portanto, ao realizar essa escolha, leve em consideração suas habi-        ║
- ║   lidades, experiência anterior em jogos semelhantes e, acima de tudo, a disposição        ║
- ║   para enfrentar adversidades.                                                             ║
- ║                                                                                            ║
- ║   Lembre-se de que cada dificuldade oferecerá uma jornada única, com recompensas pro-      ║  
- ║   porcionais aos desafios superados.                                                       ║" name))
+  (displayln (format " ║     Saudações ~a,
+ ║   a seleção do nível de dificuldade é um momento crucial, pois determinará             ║
+ ║   a intensidade e a complexidade das situações que você enfrentará.                    ║
+ ║                                                                                        ║
+ ║   Cada opção oferece uma experiência única, adaptada ao seu estilo de jogo e apetite   ║
+ ║   por desafios. Portanto, ao realizar essa escolha, leve em consideração suas habi-    ║
+ ║   lidades, experiência anterior em jogos semelhantes e, acima de tudo, a disposição    ║
+ ║   para enfrentar adversidades.                                                         ║
+ ║                                                                                        ║
+ ║   Lembre-se de que cada dificuldade oferecerá uma jornada única, com recompensas pro-  ║  
+ ║   porcionais aos desafios superados.                                                   ║" name))
   (displayln " ╚════════════════════════════════════════════════════════════════════════════════════════╝ ")
   (newline)
+
   (displayln border-up)
-  (displayln "                                 ║       1. Easy       ║")
-  (displayln "                                 ║       2. Medium     ║")
-  (displayln "                                 ║       3. Hard       ║")
+  (displayln "                                 ║      1. Easy        ║")
+  (displayln "                                 ║      2. Medium      ║")
+  (displayln "                                 ║      3. Hard        ║")
   (display border-down)
   (newline))
 
@@ -480,20 +491,15 @@
       ((= choose 3) (print-credits))
       ((= choose 4) (error "Saindo..."))
       (else (menu-game-character-created? player)))))
+
+
+
+
+
 ;;
 ;;
 (define (menu-game-character-created? player)
-  (newline)
-  (displayln "                  ╔════════════════════════════════════════════╗")
-  (displayln "                  ║        Aventuras na Terra de Racket        ║")
-  (displayln "                  ╚════════════════════════════════════════════╝")
-  (displayln "                  ╔════════════════════════════════════════════╗")
-  (displayln "                  ║                 1. Jogar                   ║")
-  (displayln "                  ║                 2. Ajuda                   ║")
-  (displayln "                  ║                 3. Créditos                ║")
-  (displayln "                  ║                 4. Sair                    ║")
-  (displayln "                  ╚════════════════════════════════════════════╝")
-  (newline)
+  (display-menu-game)
   (menu-select-character-created? player))
 
 
@@ -669,13 +675,7 @@
 
 
 
-
-
-; Void -> Void
-; Função do menu principal do jogo, exibindo opções para o jogador escolher.
-; (define (menu-game) ...)
-;
-(define (menu-game)
+(define (display-menu-game)
   (newline)
   (displayln "                  ╔════════════════════════════════════════════╗")
   (displayln "                  ║        Aventuras na Terra de Racket        ║")
@@ -686,7 +686,16 @@
   (displayln "                  ║                 3. Créditos                ║")
   (displayln "                  ║                 4. Sair                    ║")
   (displayln "                  ╚════════════════════════════════════════════╝")
-  (newline)
+  (newline))
+
+
+
+; Void -> Void
+; Função do menu principal do jogo, exibindo opções para o jogador escolher.
+; (define (menu-game) ...)
+;
+(define (menu-game)
+  (display-menu-game)
   (menu-select))
 
 
@@ -814,7 +823,7 @@
   (level 4
          " Despertar da Magia"
          " Em um reino distante, onde a magia adormecida aguarda despertar, você é convocado para resolver o enigma mágico. A mensagem perdida revela: 'Defina uma função, chamada de 'increment', que retorna a soma de x com o valor 1'. Os sábios do reino acreditam que desvendar este mistério trará à tona poderes mágicos ocultos. Aceite o desafio e embarque na jornada mágica, enfrentando o primeiro enigma."
-         "(define(increment x)(+ x 1))"
+         "(define (increment x) (+ x 1))"
          100
          " Ao resolver o enigma, você sente uma corrente de energia mágica pulsando através de você. A paisagem ao seu redor parece vibrar com uma nova vitalidade, e os sábios, reconhecendo sua realização, sorriem em aprovação. Animado pelo sucesso, você se prepara para enfrentar os desafios subsequentes, ciente de que a magia despertada é apenas o começo de uma jornada incrível."))
 
@@ -822,7 +831,7 @@
   (level 5
          " Travessia da Sombra Verde"
          " Após desvendar o enigma inicial, você se aventura através da Sombra Verde, uma floresta encantada envolta em mistérios. Árvores sussurram enigmas e riachos guardam segredos. Um guardião élfico apresenta o desafio: 'Defina uma função, chamada de 'double', que retorna o dobro de um valor 'x'. Decifre esta expressão e prove sua astúcia para avançar na jornada mágica."
-         "(define(double x)(* x 2))"
+         "(define (double x) (* x 2))"
          100
          " Ao decifrar a expressão mágica, a floresta responde com suspiros aprovativos. O guardião élfico, com um aceno de cabeça, indica que você está pronto para desafios mais profundos. Fortalecido pela experiência, você continua sua travessia, ansioso pelos enigmas que aguardam na sombra mágica da floresta."))
 
@@ -830,7 +839,7 @@
   (level 6 
          " Ascensão na Torre do Saber" 
          " Emergindo da densa floresta, sua jornada o leva em direção a uma majestosa Torre do Saber, um farol de conhecimento e magia. Os magos sábios que a habitam desejam testar suas habilidades nas complexas artes das funções. Eles apresentam o desafio: 'Defina uma função chamada 'square', que retorna a raiz quadrada de um valor x'. Domine esta arte mágica para desbloquear os próximos níveis de poder."
-         "(define(square x)(* x x))" 
+         "(define (square x)(* x x))" 
          200 
          " Ao aprimorar a magia de 'square', a torre ressoa com a vibração da magia aprimorada. Os magos reconhecem sua maestria e indicam o caminho para desafios ainda mais profundos e poderosos."))
 
@@ -838,7 +847,7 @@
   (level 7
          "Portal para a Floresta Encantada"
          "Em meio a uma floresta mágica, você descobre um portal secreto para a enigmática Floresta Encantada. Os seres místicos que habitam este local mágico estão em apuros. Uma criatura alada deixou cair uma mensagem com a equação mágica escrita: 'Defina uma função, chamada de 'encantamento-especial' que combine a lista b à lista a usando a função 'cons' e, em seguida, aplique um encantamento especial na nova lista resultante.'. Acreditam que resolver este enigma trará equilíbrio à floresta e fortalecerá suas conexões com a natureza. Aceitando o desafio, você se prepara para embarcar nesta jornada, pronta para enfrentar o primeiro enigma mágico."
-         "(define(encantamento-especial)(cons a b))"
+         "(define (encantamento-especial)(cons a b))"
          150
          " Ao realizar o encantamento especial, a floresta ressoa com alegria, e as criaturas mágicas te saúdam com gratidão. O portal para a próxima fase da sua jornada se abre, indicando o caminho para desafios mais profundos e misteriosos."))
 
@@ -846,7 +855,7 @@
   (level 8
          "A Câmara dos Sussurros"
          "Do outro lado do portal, você entra na Câmara dos Sussurros, um lugar onde as vozes dos antigos sussurram segredos e desafios. Inscrições antigas revelam a próxima tarefa: 'Defina uma nova lista, chamada de 'nova-lista', onde os seus valores será a raiz quadrada (Utilize o square) dos valores da lista 'lista'. Para isso é necessário utilizar o comando 'map''. Os espíritos sussurrantes acreditam que superar este desafio abrirá portas para conhecimentos antigos e aprimorará sua habilidade mágica. Preparado para o desafio, você se aprofunda na Câmara dos Sussurros, ansioso pelo próximo enigma."
-         "(define nova-lista(map square lista))"
+         "(define nova-lista (list (map square lista)))"
          150
          " Ao decifrar os sussurros antigos, uma aura de sabedoria o envolve. Portas secretas se revelam, indicando o caminho adiante em sua jornada mágica."))
 
@@ -854,7 +863,7 @@
   (level 9
          "As Ruínas do Tempo"
          "Emergindo da Câmara dos Sussurros, você chega às Ruínas do Tempo, um local onde passado, presente e futuro se entrelaçam. Uma entidade temporal revela um novo desafio: 'Crie um feitiço temporal, chamado de 'feitiço-passado', onde realiza uma comparação do valor 'x', para caso ele seja 0, se for, nada acontece, caso contrário, chama o feitiço, diminuindo 1, cada vez que o feitiço for chamado..'. A entidade acredita que superar este desafio desvendará mistérios do tempo e aprimorará seus poderes dimensionais. Com coragem renovada, você aceita o desafio e adentra as Ruínas do Tempo, prontos para enfrentar o nono enigma."
-         "(define(feitiço-passado x)(if (= x 0) 1 (feitiço-temporal (- x 1))))"
+         "(define (feitiço-passado x) (if (= x 0) 1 (feitiço-temporal (- x 1))))"
          300
          " Ao lançar o feitiço temporal, as ruínas ecoam com eco do passado e visões do futuro. Uma energia temporal pulsante indica que você desvendou mais um mistério, preparando-o para os desafios que aguardam à frente. O portal das Ruínas do Tempo se ilumina, sugerindo que a próxima fase de sua jornada está prestes a se revelar."))
 
