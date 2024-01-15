@@ -190,24 +190,28 @@
 ;   - player: Estrutura Player contendo as informações do jogador.
 ;;
 (define (draw-player-hud player)
+  (define blank-space "          ")
   (newline)
-  (displayln " ----------------------------------------------------------------------------- ")
-  (displayln " |          Name          Level          XP          Stage        Difficulty | ")
-  (display   " ----------------------------------------------------------------------------- ")
+  (displayln "    ╔════════════════════════════════════════════════════════════════════════════════════════╗ ")
+  (displayln "    ║            Name          Level          XP          Stage        Difficulty            ║ ")
+  (display   "    ╚════════════════════════════════════════════════════════════════════════════════════════╝ ")
   (newline)
-  (display "          ")
+  (display "    ║")
+  (display blank-space)
   (display (player-name player))
-  (display "            ")
+
+  (display "           ")
   (display (player-level player))
+
   (display "             ")
   (display (player-experience player))
-  (display "            ")
+  (display "             ")
   (display (player-stage player))
-  (display "           ")
+  (display "             ")
   (display (player-difficulty player))
   (display "       ")
   (newline)
-  (displayln " -----------------------------------------------------------------------------")
+  (displayln "    ══════════════════════════════════════════════════════════════════════════════════════════")
   (newline))
 
 
@@ -369,16 +373,16 @@
 
   (newline)
   (displayln " ╔════════════════════════════════════════════════════════════════════════════════════════╗ ")
-  (displayln (format " ║     Saudações ~a, a seleção do nível de dificuldade é um momento crucial, pois     ║
- ║   determinará a intensidade e a complexidade das situações que você enfrentará.        ║
- ║                                                                                        ║
- ║   Cada opção oferece uma experiência única, adaptada ao seu estilo de jogo e apetite   ║
- ║   por desafios. Portanto, ao realizar essa escolha, leve em consideração suas habi-    ║
- ║   lidades, experiência anterior em jogos semelhantes e, acima de tudo, a disposição    ║
- ║   para enfrentar adversidades.                                                         ║
- ║                                                                                        ║
- ║   Lembre-se de que cada dificuldade oferecerá uma jornada única, com recompensas pro-  ║ 
- ║   porcionais aos desafios superados.                                                   ║" name))
+  (displayln (format " ║     Saudações ~a, a seleção do nível de dificuldade é um momento crucial, pois ║
+ ║   determinará a intensidade e a complexidade das situações que você enfrentará.            ║
+ ║                                                                                            ║
+ ║   Cada opção oferece uma experiência única, adaptada ao seu estilo de jogo e apetite       ║
+ ║   por desafios. Portanto, ao realizar essa escolha, leve em consideração suas habi-        ║
+ ║   lidades, experiência anterior em jogos semelhantes e, acima de tudo, a disposição        ║
+ ║   para enfrentar adversidades.                                                             ║
+ ║                                                                                            ║
+ ║   Lembre-se de que cada dificuldade oferecerá uma jornada única, com recompensas pro-      ║  
+ ║   porcionais aos desafios superados.                                                       ║" name))
   (displayln " ╚════════════════════════════════════════════════════════════════════════════════════════╝ ")
   (newline)
   (displayln border-up)
@@ -471,7 +475,7 @@
   (display " -> ")
   (let ((choose (string->number (read-line))))
     (cond
-      ((= choose 1) (initialize-create))
+      ((= choose 1) (start-game player))
       ((= choose 2) (print-help))
       ((= choose 3) (print-credits))
       ((= choose 4) (error "Saindo..."))
@@ -480,14 +484,15 @@
 ;;
 (define (menu-game-character-created? player)
   (newline)
-  (displayln " =========================================")
-  (displayln "       Aventuras na Terra de Racket       ")
-  (displayln " =========================================")
-  (newline)
-  (displayln "             1. Jogar")
-  (displayln "             2. Ajuda")
-  (displayln "             3. Créditos")
-  (displayln "             4. Sair")
+  (displayln "                  ╔════════════════════════════════════════════╗")
+  (displayln "                  ║        Aventuras na Terra de Racket        ║")
+  (displayln "                  ╚════════════════════════════════════════════╝")
+  (displayln "                  ╔════════════════════════════════════════════╗")
+  (displayln "                  ║                 1. Jogar                   ║")
+  (displayln "                  ║                 2. Ajuda                   ║")
+  (displayln "                  ║                 3. Créditos                ║")
+  (displayln "                  ║                 4. Sair                    ║")
+  (displayln "                  ╚════════════════════════════════════════════╝")
   (newline)
   (menu-select-character-created? player))
 
@@ -718,25 +723,24 @@
 ;
 (define (print-credits)
   (newline)
-  (displayln "              =========================================")
-  (displayln "                 Seja muito bem-vindo aos créditos.    ")
-  (displayln "              =========================================")
+  (displayln "                  ╔════════════════════════════════════════════╗")
+  (displayln "                  ║            Bem Vindo aos créditos.         ║")
+  (displayln "                  ╚════════════════════════════════════════════╝")
   (newline)
-  (displayln "  Aventuras na terra Racket é um jogo educativo, desenvolvido para a matéria")
-  (displayln "  de Paradigma de Programação Lógica e Funcional do curso de ciência da computação")
-  (displayln "  fornecido pela Universidade Estadual de Maringá.")
+  (displayln "           Aventuras na terra Racket é um jogo educativo, desenvolvido
+           para a matéria de Paradigma de Programação Lógica e Funcional
+           do curso de ciência da computação fornecido pela Universidade
+           Estadual de Maringá")
   (newline)
-  (displayln "  A seguir, o nome e o RA de cada integrante envolvido no desenvolvimento")
+  (displayln "           A seguir, o nome e o RA de cada integrante envolvido no
+           desenvolvimento")
   (newline)
-  (displayln "  -------------------------------------------------------------------------------- ")
+  (displayln "                  ╔════════════════════════════════════════════╗ ")
+  (displayln "                  ║  Andrei Roberto da Costa  ..... RA 107975  ║                         ")
+  (displayln "                  ║  João Gilberto Casagrande ..... RA 112684  ║                         ")
+  (displayln "                  ╚════════════════════════════════════════════╝ ")
   (newline)
-  (displayln "               Andrei Roberto da Costa  ..... RA 107975                            ")
-  (newline)
-  (displayln "               João Gilberto Casagrande ..... RA 112684                            ")
-  (newline)
-  (displayln "  -------------------------------------------------------------------------------- ")
-  (newline)
-  (displayln "    1. Retornar ao menu")
+  (displayln "           1. Retornar ao menu")
   (newline)
   (display " -> ")
   (process-input menu-game print-credits 1))
