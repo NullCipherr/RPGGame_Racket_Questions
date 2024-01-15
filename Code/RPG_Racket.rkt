@@ -78,6 +78,9 @@
   (void))
 
 
+
+
+
 ;; String -> String
 ;; Função que tem como uma entrada uma string e retorna uma string sem os espaços em branco.
 ;; (define (remove-spaces str) ...)
@@ -89,6 +92,13 @@
 
 
 
+
+(define (exit-game)
+  (newline)
+  (displayln " Saindo do Jogo...")
+  (displayln " Muito obrigado por jogar Aventuras na Terra Racket!!")
+  (newline)
+  (exit))
 
 ;; String -> Void
 ;; A função write imprime uma string na tela, letra por letra, com um atraso de 0.03 segundos entre cada letra, simulando o efeito de digitação de texto em tempo real.
@@ -201,9 +211,9 @@
 (define (draw-player-hud player)
   (define blank-space "          ")
   (newline)
-  (displayln "    ╔════════════════════════════════════════════════════════════════════════════════════════╗ ")
-  (displayln "    ║            Name          Level          XP          Stage        Difficulty            ║ ")
-  (display   "    ╚════════════════════════════════════════════════════════════════════════════════════════╝ ")
+  (displayln "    ╔═════════════════════════════════════════════════════════════════════════════════════╗ ")
+  (displayln "    ║            Name          Level          XP          Stage          Difficulty       ║ ")
+  (display   "    ╚═════════════════════════════════════════════════════════════════════════════════════╝ ")
   (newline)
   (display "    ║")
   (display blank-space)
@@ -220,7 +230,7 @@
   (display (player-difficulty player))
   (display "       ")
   (newline)
-  (displayln "    ══════════════════════════════════════════════════════════════════════════════════════════")
+  (displayln "    ═══════════════════════════════════════════════════════════════════════════════════════ ")
   (newline))
 
 
@@ -286,9 +296,11 @@
   (newline)
   (write "  1. Criar personagem")
   (newline)
+  (write "  2. Voltar ao menu")
+  (newline)
   (newline)
   (sleep 0.1)
-  (process-input create-player initialize-create 1))
+  (process-input create-player menu-game 1))
 
 
 
@@ -403,8 +415,8 @@
   (display border-down)
   (newline))
 
-(define border-2 " ╔═════════════════════════════════════════════╗ ")
-(define border-3 " ╚═════════════════════════════════════════════╝ ")
+
+
 
 
 ;; String -> String
@@ -477,6 +489,21 @@
 
 
 
+;;
+(define (print-credits-created? player)
+  (display-credits)
+  (process-input (lambda () (menu-game-character-created? player)) print-credits-created? 1))
+
+
+
+;; 
+(define (print-help-created? player)
+  (display-credits)
+  (process-input (lambda () (menu-game-character-created? player)) print-help-created? 1))
+
+
+
+
 
 ;; Void -> Void
 ;; Função que controla as seleções do menu, permitindo ao jogador escolher entre as ações disponíveis.
@@ -487,10 +514,12 @@
   (let ((choose (string->number (read-line))))
     (cond
       ((= choose 1) (start-game player))
-      ((= choose 2) (print-help))
-      ((= choose 3) (print-credits))
-      ((= choose 4) (error "Saindo..."))
+      ((= choose 2) (print-help-created? player))
+      ((= choose 3) (print-credits-created? player))
+      ((= choose 4) (exit-game))
       (else (menu-game-character-created? player)))))
+
+
 
 
 
@@ -637,8 +666,9 @@
   (display " Digite a sua resposta: ") ; Solicita a resposta do usuário.
   (flush-output)
   (let ((user-answer (read-line))) ; Lê a resposta do usuário.
-    (if (string=? user-answer (level-answer level)) ; Se a resposta estiver correta:
+    (if (string=? (remove-spaces user-answer) (remove-spaces (level-answer level))) ; Se a resposta estiver correta:
         (begin
+          (display (string=? (remove-spaces user-answer) (remove-spaces (level-answer level))))
           (newline)
           (write (level-answer-correct-message level)) ; Exibe a mensagem de resposta correta.
           (next-stage-input player level) ; Avança para a próxima fase.
@@ -670,7 +700,7 @@
       ((= choose 1) (initialize-create))
       ((= choose 2) (print-help))
       ((= choose 3) (print-credits))
-      ((= choose 4) (error "Saindo..."))
+      ((= choose 4) (exit-game))
       (else (menu-game)))))
 
 
@@ -726,11 +756,7 @@
 
 
 
-; Void -> Void
-; Função que imprime os créditos do jogo, exibindo informações sobre o desenvolvimento e os integrantes da equipe.
-; (define (print-credits) ...)
-;
-(define (print-credits)
+(define (display-credits)
   (newline)
   (displayln "                  ╔════════════════════════════════════════════╗")
   (displayln "                  ║            Bem Vindo aos créditos.         ║")
@@ -750,8 +776,18 @@
   (displayln "                  ╚════════════════════════════════════════════╝ ")
   (newline)
   (displayln "           1. Retornar ao menu")
-  (newline)
-  (display " -> ")
+  (newline))
+
+
+
+
+
+; Void -> Void
+; Função que imprime os créditos do jogo, exibindo informações sobre o desenvolvimento e os integrantes da equipe.
+; (define (print-credits) ...)
+;
+(define (print-credits)
+  (display-credits)
   (process-input menu-game print-credits 1))
 
 
@@ -780,11 +816,12 @@
 ;   - level: O nível para o qual o usuário avançou.
 ;
 (define (notify-level-up level)
-  (define border " *************************************************** ") ; String que representa uma linha de separação visual para destacar a mensagem
+  (define border-up "              ╔═*══*══*══*══*══*══*══*══*══*══*══*══*══*══*═╗ ") ; String que representa uma linha de separação visual para destacar a mensagem
+  (define border-down "              ╚═*══*══*══*══*══*══*══*══*══*══*══*══*══*══*═╝ ")
   (newline)
-  (displayln border) ; Exibe a linha de separação superior.
-  (displayln (format "  Parabéns!! Você avançou para o nível ~a" level)) ; Exibe a mensagem de parabéns com o nível alcançado.
-  (displayln border) ; Exibe a linha de separação inferior.
+  (displayln border-up) ; Exibe a linha de separação superior.
+  (displayln (format "              *   Parabéns!! Você avançou para o nível ~a    *" level)) ; Exibe a mensagem de parabéns com o nível alcançado.
+  (displayln border-down) ; Exibe a linha de separação inferior.
   (newline))
 
 
@@ -818,6 +855,8 @@
          "(+ x y)" 
          100 
          " Ao dominar a magia de adicionar 'y' ao valor de 'x', os magos aplaudem sua perícia. Com confiança renovada, você avança para desafios mais complexos, sabendo que a jornada mágica está apenas começando."))
+
+
 
 (define level-1-medium
   (level 4
