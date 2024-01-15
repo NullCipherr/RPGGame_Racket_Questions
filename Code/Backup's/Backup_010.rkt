@@ -167,18 +167,6 @@
   (check-equal? (has-matching-parentheses? "(()()") #f)))
 
 
-
-
-;; Function Function -> Function
-;;
-(define (process-input function-a function-b value)
-  (display " -> ")
-  (let ((x (read-line)))
-    (if (= (string->number x) value)
-        (function-a)
-        (function-b))))
-
-
 ; --------------------------------------------------------
 ; Seção : Jogador
 ; --------------------------------------------------------
@@ -261,7 +249,6 @@
 ;; A função apresenta a narrativa inicial e oferece a opção de criar um novo personagem se nenhum personagem foi criado anteriormente.
 ;; (define (initialize-create) ...)
 ;;
-
 (define (initialize-create)
   (newline)
   ; Verifica se é a primeira vez que o jogador está criando um personagem.
@@ -275,7 +262,11 @@
   (newline)
   (newline)
   (sleep 0.1)
-  (process-input create-player initialize-create 1))
+  (display " -> ")
+  (let ((x (read-line)))
+    (if (= (string->number x) 1)
+        (create-player)
+        (initialize-create))))
 
 
 
@@ -303,7 +294,7 @@
            (experience 0)
            (character-1 (make-player id name difficulty level experience advance))) ; Cria um novo personagem com as informações fornecidas.
     
-      ; (draw-player-hud character-1) ; Desenha o HUD do jogador.
+      (draw-player-hud character-1) ; Desenha o HUD do jogador.
       (start-game character-1)))) ; Inicia o jogo com o novo personagem.
 
 
@@ -363,33 +354,24 @@
 ;; (define (display-select-difficulty name) ...)
 ;;
 (define (display-select-difficulty name)
-  (define border-up "                                 ╔═════════════════════╗ ")
-  (define border-down "                                 ╚═════════════════════╝ ")
-  (define empty-space "                                     ")
+  (define border " ==============================================================================")
+  (define empty-space "                                ")
 
   (newline)
-  (displayln " ╔════════════════════════════════════════════════════════════════════════════════════════╗ ")
-  (displayln (format " ║     Saudações ~a, a seleção do nível de dificuldade é um momento crucial, pois     ║
- ║   determinará a intensidade e a complexidade das situações que você enfrentará.        ║
- ║                                                                                        ║
- ║   Cada opção oferece uma experiência única, adaptada ao seu estilo de jogo e apetite   ║
- ║   por desafios. Portanto, ao realizar essa escolha, leve em consideração suas habi-    ║
- ║   lidades, experiência anterior em jogos semelhantes e, acima de tudo, a disposição    ║
- ║   para enfrentar adversidades.                                                         ║
- ║                                                                                        ║
- ║   Lembre-se de que cada dificuldade oferecerá uma jornada única, com recompensas pro-  ║ 
- ║   porcionais aos desafios superados.                                                   ║" name))
-  (displayln " ╚════════════════════════════════════════════════════════════════════════════════════════╝ ")
+  (displayln border)
   (newline)
-  (displayln border-up)
-  (displayln "                                 ║       1. Easy       ║")
-  (displayln "                                 ║       2. Medium     ║")
-  (displayln "                                 ║       3. Hard       ║")
-  (display border-down)
+  (displayln (format "      Saudações ~a, a seguir selecione o seu nível de dificuldade, ao   " name))
+  (displayln "    qual corresponderá aos desafios que você deseja enfrentar no futuro!  ")
+  (newline)
+  (displayln border)
+  (displayln (format "~a 1. Easy" empty-space))
+  (displayln (format "~a 2. Medium" empty-space))
+  (displayln (format "~a 3. Hard" empty-space))
+  (display border)
   (newline))
 
-(define border-2 " ╔═════════════════════════════════════════════╗ ")
-(define border-3 " ╚═════════════════════════════════════════════╝ ")
+
+
 
 
 ;; String -> String
@@ -463,76 +445,23 @@
 
 
 
-;; Void -> Void
-;; Função que controla as seleções do menu, permitindo ao jogador escolher entre as ações disponíveis.
-;; (define (menu-select) ...)
-;
-(define (menu-select-character-created? player)
-  (display " -> ")
-  (let ((choose (string->number (read-line))))
-    (cond
-      ((= choose 1) (initialize-create))
-      ((= choose 2) (print-help))
-      ((= choose 3) (print-credits))
-      ((= choose 4) (error "Saindo..."))
-      (else (menu-game-character-created? player)))))
-;;
-;;
-(define (menu-game-character-created? player)
-  (newline)
-  (displayln " =========================================")
-  (displayln "       Aventuras na Terra de Racket       ")
-  (displayln " =========================================")
-  (newline)
-  (displayln "             1. Jogar")
-  (displayln "             2. Ajuda")
-  (displayln "             3. Créditos")
-  (displayln "             4. Sair")
-  (newline)
-  (menu-select-character-created? player))
-
-
-
 ;; Player -> void
 ;; Exibe um menu de opções para o jogador e executa a ação correspondente à escolha do jogador.
 ;; (define (start-game player) ...)
 ;; 
 (define (start-game player)
-  (draw-player-hud player)
   (newline)
   (display (format " Bem Vindo ~a, \n
              1. Começar estágios
              2. Mostrar estágios desbloqueados
-             3. Mostrar Achivements
-             4. Voltar ao menu \n\n" (player-name player)))
-
+             3. Mostrar Achivements \n\n" (player-name player)))
   (display " -> ")
-  (let ((option (string->number (read-line))))
+  (let ((option (read-line)))
     (cond
-      ((= option 1) (initialize-game player))
-      ((= option 2) (display-unlocked-stages player))
-      ((= option 3))
-      ((= option 4) (menu-game-character-created? player)) ; Supondo que menu-select seja a função principal do menu
+      ((= (string->number option) 1) (initialize-game player))
       (else (start-game player)))))
 
 
-(define (show-stages-unlocked difficulty)
-   (cond
-    [(string=? difficulty "Easy")(display " Easy[Unlocked] -> Medium[Locked] -> Hard[Locked]")]
-    [(string=? difficulty "Medium")(display " Easy[Unlocked] -> Medium[Unlocked] -> Hard[Locked]")]
-    [(string=? difficulty "Hard")(display " Easy[Unlocked] -> Medium[Unlocked] -> Hard[Unlocked]")]
-    ))
-
-
-(define (display-unlocked-stages player)
-  (let ((difficulty (player-difficulty player)))
-  ; Implemente a lógica para exibir os estágios desbloqueados
-  (cond
-    [(string=? difficulty "Easy")(show-stages-unlocked difficulty)]
-    [(string=? difficulty "Medium")(show-stages-unlocked difficulty)]
-    [(string=? difficulty "Hard")(show-stages-unlocked difficulty)]
-    ))
-  (start-game player))
 
 
 
@@ -653,13 +582,13 @@
 ;; (define (menu-select) ...)
 ;
 (define (menu-select)
-  (display " -> ")
-  (let ((choose (string->number (read-line))))
+  (display "-> ")
+  (let ((choose (read-line)))
     (cond
-      ((= choose 1) (initialize-create))
-      ((= choose 2) (print-help))
-      ((= choose 3) (print-credits))
-      ((= choose 4) (error "Saindo..."))
+      ((= (string->number choose) 1) (initialize-create))
+      ((= (string->number choose) 2) (print-help))
+      ((= (string->number choose) 3) (print-credits))
+      ((= (string->number choose) 4) (error "Saindo..."))
       (else (menu-game)))))
 
 
@@ -672,15 +601,14 @@
 ;
 (define (menu-game)
   (newline)
-  (displayln "                  ╔════════════════════════════════════════════╗")
-  (displayln "                  ║        Aventuras na Terra de Racket        ║")
-  (displayln "                  ╚════════════════════════════════════════════╝")
-  (displayln "                  ╔════════════════════════════════════════════╗")
-  (displayln "                  ║                 1. Jogar                   ║")
-  (displayln "                  ║                 2. Ajuda                   ║")
-  (displayln "                  ║                 3. Créditos                ║")
-  (displayln "                  ║                 4. Sair                    ║")
-  (displayln "                  ╚════════════════════════════════════════════╝")
+  (displayln " =========================================")
+  (displayln "       Aventuras na Terra de Racket       ")
+  (displayln " =========================================")
+  (newline)
+  (displayln "             1. Jogar")
+  (displayln "             2. Ajuda")
+  (displayln "             3. Créditos")
+  (displayln "             4. Sair")
   (newline)
   (menu-select))
 
@@ -693,20 +621,21 @@
 ; (define (print-help) ...)
 (define (print-help)
   (newline)
-  (displayln "                  ╔════════════════════════════════════════════╗ ")
-  (displayln "                  ║          Bem-vindo ao menu de ajuda        ║ ")
-  (displayln "                  ╚════════════════════════════════════════════╝ ")
+  (displayln " =========================================")
+  (displayln "         Bem-vindo ao menu de ajuda       ")
+  (displayln " =========================================")
+  (displayln " Você está em uma jornada para aprender Racket e se tornar um mestre programador!")
   (newline)
-  (displayln "   Você está em uma jornada para aprender Racket e se tornar um mestre programador!! ")
+  (displayln "       1. Explorar Tutoriais")
+  (displayln "       2. Consultar Dicas do Mestre")
+  (displayln "       3. Ler Documentação Mágica")
+  (displayln "       4. Voltar à Aventura")
   (newline)
-  (displayln "                  ╔════════════════════════════════════════════╗")
-  (displayln "                  ║        1. Explorar Tutoriais               ║")
-  (displayln "                  ║        2. Consultar Dicas do Mestre        ║")
-  (displayln "                  ║        3. Ler Documentação Mágica          ║")
-  (displayln "                  ║        4. Voltar à Aventura                ║")
-  (displayln "                  ╚════════════════════════════════════════════╝")
-  (newline)
-  (process-input menu-game print-help 4))
+  (display "-> ")
+  (let ((x (read-line)))
+    (if (= (string->number x) 4)
+        (menu-game)
+        (displayln "Comando inválido!"))))
 
 
 
@@ -738,8 +667,11 @@
   (newline)
   (displayln "    1. Retornar ao menu")
   (newline)
-  (display " -> ")
-  (process-input menu-game print-credits 1))
+  (display "-> ")
+  (let ((x (read-line)))
+    (if (= (string->number x) 1)
+        (menu-game)
+        (print-credits))))
 
 
 
@@ -751,9 +683,8 @@
 ;
 (define (display-select-name)
   (newline)
-  (write " Bem-vindo(a) à Aba de Seleção de Nome, o ponto de partida para a sua jornada extraordinária!
- Neste reino digital, o nome que você escolher será mais do que uma simples etiqueta, será a
- personificação da sua jornada e conquistas.")
+  (write "  Bem-vindo(a) à Aba de Seleção de Nome, o ponto de partida para a sua jornada extraordinária!
+ Neste reino digital, o nome que você escolher será mais do que uma simples etiqueta, será a personificação da sua jornada e conquistas.")
   (newline))
 
 
@@ -854,6 +785,5 @@
          300
          " Ao lançar o feitiço temporal, as ruínas ecoam com eco do passado e visões do futuro. Uma energia temporal pulsante indica que você desvendou mais um mistério, preparando-o para os desafios que aguardam à frente. O portal das Ruínas do Tempo se ilumina, sugerindo que a próxima fase de sua jornada está prestes a se revelar."))
 
-(menu-game)
-; (display-select-difficulty "Andrei")
 
+(menu-game)
