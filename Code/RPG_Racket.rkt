@@ -2,6 +2,11 @@
 
 (require rackunit)
 (require rackunit/text-ui)
+
+
+
+
+
 ;; ---------------------------------------------------------- ;;
 ;; Alunos e RA
 ;; ---------------------------------------------------------- ;;
@@ -89,16 +94,45 @@
   (string->list str) ; Converte a string para uma lista de caracteres
   (list->string (filter (lambda (c) (not (char-whitespace? c))) (string->list str))))
 
+;; Teste unitário -> OKAY
+(define (remove-space-tests)
+  (test-suite "remove space tests"
+              (check-equal? (remove-spaces "Hello World") "HelloWorld")
+              (check-equal? (remove-spaces "   Racket  ") "Racket")
+              (check-equal? (remove-spaces "NoSpacesHere") "NoSpacesHere")
+              (check-equal? (remove-spaces "") "")))
 
 
 
 
+
+;; Void -> String
+;; Aguarda que o usuário pressione Enter e retorna a linha inserida.
+;; (define (wait-enter) ...)
+;;
+(define (wait-enter)
+  (flush-output)
+  (read-line))
+
+
+
+
+
+;; Void -> Void
+;; Exibe uma mensagem de saída e encerra o programa.
+;; (define (exit-game) ...)
+;;
 (define (exit-game)
   (newline)
   (displayln " Saindo do Jogo...")
   (displayln " Muito obrigado por jogar Aventuras na Terra Racket!!")
   (newline)
   (exit))
+
+
+
+
+
 
 ;; String -> Void
 ;; A função write imprime uma string na tela, letra por letra, com um atraso de 0.03 segundos entre cada letra, simulando o efeito de digitação de texto em tempo real.
@@ -123,19 +157,6 @@
       (loop (rest chars))))
   ;; Chama a função 'loop' com a lista de caracteres
   (loop chars))
-
-
-
-
-
-;; String -> String
-;; Normaliza uma resposta, removendo espaços em branco e convertendo para minúsculas.
-;; (define (normalize-answer answer) ...)
-;; Parâmetros:
-;   - answer: A resposta a ser normalizada.
-;;
-(define (normalize-answer answer)
-  (string-downcase (string-trim answer)))
 
 
 
@@ -247,10 +268,6 @@
   (flush-output)
   (read-line))
 
-;; Teste unitário
-(define (set-name-tests)
-  (check-equal? (string? (set-name)) #t))
-
 
 
 
@@ -299,7 +316,6 @@
   (write "  2. Voltar ao menu")
   (newline)
   (newline)
-  (sleep 0.1)
   (process-input create-player menu-game 1))
 
 
@@ -323,12 +339,11 @@
     (display "\n Difficulty -> ")
     (let* ((difficulty_temp (read-line)) ; Lê a dificuldade do jogador.
            (difficulty (verify-difficulty-input difficulty_temp)) ; Verifica se a dificuldade é válida.
-           (advance 1) ; Independente da dificuldade, o player começará no stage=1, de sua respectiva dificuldade.
+           (stage 1) ; Independente da dificuldade, o player começará no stage=1, de sua respectiva dificuldade.
            (level 1)
            (experience 0)
-           (character-1 (make-player id name difficulty level experience advance))) ; Cria um novo personagem com as informações fornecidas.
+           (character-1 (make-player id name difficulty level experience stage))) ; Cria um novo personagem com as informações fornecidas.
     
-      ; (draw-player-hud character-1) ; Desenha o HUD do jogador.
       (start-game character-1)))) ; Inicia o jogo com o novo personagem.
 
 
@@ -466,6 +481,7 @@
 ;   - player: Estrutura Player contendo as informações do jogador.
 ;   - difficulty: String representando a dificuldade do nível (Easy, Medium, Hard).
 ;   - stage: Inteiro representando o estágio do nível (1, 2, 3).
+;
 (define (select-level player difficulty stage)
   (cond
     ((equal? difficulty "Easy")
@@ -489,14 +505,24 @@
 
 
 
-;;
+;; Player -> Void
+;; Exibe os créditos e redireciona para o menu de personagem criado.
+;; (define (print-credits-created? player) ...)
+;; Parâmetros:
+; - player: O jogador cujo personagem foi criado.
+;
 (define (print-credits-created? player)
   (display-credits)
   (process-input (lambda () (menu-game-character-created? player)) print-credits-created? 1))
 
 
 
-;; 
+;; Player -> Void
+;; Exibe os créditos e redireciona para o menu de personagem criado.
+;; (define (print-help-created? player) ...)
+;; Parâmetros:
+; - player: O jogador cujo personagem foi criado.
+;
 (define (print-help-created? player)
   (display-credits)
   (process-input (lambda () (menu-game-character-created? player)) print-help-created? 1))
@@ -505,7 +531,7 @@
 
 
 
-;; Void -> Void
+;; Player -> Void
 ;; Função que controla as seleções do menu, permitindo ao jogador escolher entre as ações disponíveis.
 ;; (define (menu-select) ...)
 ;
@@ -525,7 +551,9 @@
 
 
 
-;;
+;; Player -> Void
+;; Exibe o menu do jogo e redireciona para a seleção de personagem criado.
+;; (define (menu-game-character-created? player) ...)
 ;;
 (define (menu-game-character-created? player)
   (display-menu-game)
@@ -533,46 +561,63 @@
 
 
 
-;; Player -> void
+;; Player -> Void
 ;; Exibe um menu de opções para o jogador e executa a ação correspondente à escolha do jogador.
 ;; (define (start-game player) ...)
-;; 
+;;
 (define (start-game player)
   (draw-player-hud player)
   (newline)
   (display (format " Bem Vindo ~a, \n
              1. Começar estágios
              2. Mostrar estágios desbloqueados
-             3. Mostrar Achivements
-             4. Voltar ao menu \n\n" (player-name player)))
+             3. Voltar ao menu \n\n" (player-name player)))
 
   (display " -> ")
   (let ((option (string->number (read-line))))
     (cond
       ((= option 1) (initialize-game player))
       ((= option 2) (display-unlocked-stages player))
-      ((= option 3))
-      ((= option 4) (menu-game-character-created? player)) ; Supondo que menu-select seja a função principal do menu
+      ((= option 3) (menu-game-character-created? player)) ; Supondo que menu-select seja a função principal do menu
       (else (start-game player)))))
 
 
+
+
+;; String -> Void
+;; Exibe as fases desbloqueadas com base na dificuldade fornecida.
+;; (define (show-stages-unlocked difficulty) ...)
+;; Parâmetros:
+;; - difficulty: A dificuldade para a qual mostrar as fases desbloqueadas.
+;
 (define (show-stages-unlocked difficulty)
+  (newline)
    (cond
-    [(string=? difficulty "Easy")(display " Easy[Unlocked] -> Medium[Locked] -> Hard[Locked]")]
-    [(string=? difficulty "Medium")(display " Easy[Unlocked] -> Medium[Unlocked] -> Hard[Locked]")]
-    [(string=? difficulty "Hard")(display " Easy[Unlocked] -> Medium[Unlocked] -> Hard[Unlocked]")]
-    ))
+    [(string=? difficulty "Easy")(display "  Easy[Unlocked] -> Medium[Locked] -> Hard[Locked]")]
+    [(string=? difficulty "Medium")(display "  Easy[Unlocked] -> Medium[Unlocked] -> Hard[Locked]")]
+    [(string=? difficulty "Hard")(display "  Easy[Unlocked] -> Medium[Unlocked] -> Hard[Unlocked]")]
+    )
+  (newline)
+  (wait-enter))
 
 
+
+
+;; Player -> Void
+;; Exibe as fases desbloqueadas com base na dificuldade do jogador e volta para o menu do personagem.
+;; (define (display-unlocked-stages player) ...)
+;; Parâmetros:
+;; - player: O jogador cujo personagem foi criado.
+;;
 (define (display-unlocked-stages player)
   (let ((difficulty (player-difficulty player)))
-  ; Implemente a lógica para exibir os estágios desbloqueados
   (cond
     [(string=? difficulty "Easy")(show-stages-unlocked difficulty)]
     [(string=? difficulty "Medium")(show-stages-unlocked difficulty)]
-    [(string=? difficulty "Hard")(show-stages-unlocked difficulty)]
-    ))
+    [(string=? difficulty "Hard")(show-stages-unlocked difficulty)]))
   (start-game player))
+
+
 
 
 
@@ -607,20 +652,23 @@
 
 
 
-;; Função para avançar para o próximo estágio após uma resposta correta.
+
 ;; Player Level -> void
-;; Exibe mensagens e solicita ação do jogador para continuar para o próximo estágio ou repetir o nível.
+;; Exibe mensagens e solicita ação do jogador para continuar para o próximo estágio ou repetir o nível, após a resposta estiver correta.
 ;; (define (next-stage-input player level) ...)
 ;;
 (define (next-stage-input player level)
   (newline)
   (newline)
-  (displayln "Digite 1 para continuar")
+  (displayln "  1. Continuar")
+  (displayln "  2. Voltar ao menu")
+  (newline)
   (display " -> ")
   (let ((x (read-line)))
-    (if (= (string->number x) 1)
-        (save-progress player level)
-        (next-stage-input player level))))
+    (cond
+      [(= (string->number x) 1) (save-progress player level)]
+      [(= (string->number x) 2) (start-game player)]
+      [else (next-stage-input player level)])))
 
 
 
@@ -629,19 +677,14 @@
 ;; Void -> Void
 ;; Exibe mensagens de resposta incorreta e solicita ação do jogador para continuar.
 ;; (define (incorrect-answer) ...)
+;
 (define (incorrect-answer)
   (newline)
-  (displayln " Resposta incorreta! Vamos tentar novamente...")
+  (display " A sua resposta está incorreta")
   (newline)
-
-  (displayln " 1. Tentar Novamente")
+  (display " Pressione Enter para tentar novamente...")
   (newline)
-  (display " -> ")
-  (let ((x (read-line)))
-    (if (= (string->number x) 1)
-        1
-        2
-        )))
+  (wait-enter))
 
 
 
@@ -650,7 +693,7 @@
 ;; Level Player -> Void
 ;; Exibe informações sobre o nível atual, solicita a resposta do jogador e executa ações com base na resposta.
 ;; (define (start-level level player) ...)
-;;
+;
 (define (start-level level player) 
   (define border " ------------------------------------------------------------------------")
   
@@ -668,7 +711,6 @@
   (let ((user-answer (read-line))) ; Lê a resposta do usuário.
     (if (string=? (remove-spaces user-answer) (remove-spaces (level-answer level))) ; Se a resposta estiver correta:
         (begin
-          (display (string=? (remove-spaces user-answer) (remove-spaces (level-answer level))))
           (newline)
           (write (level-answer-correct-message level)) ; Exibe a mensagem de resposta correta.
           (next-stage-input player level) ; Avança para a próxima fase.
@@ -705,6 +747,12 @@
 
 
 
+
+
+;; Void -> Void
+;; Exibe o menu principal do jogo.
+;; (define (display-menu-game) ...)
+;
 (define (display-menu-game)
   (newline)
   (displayln "                  ╔════════════════════════════════════════════╗")
@@ -720,9 +768,11 @@
 
 
 
-; Void -> Void
-; Função do menu principal do jogo, exibindo opções para o jogador escolher.
-; (define (menu-game) ...)
+
+
+;; Void -> Void
+;; Função do menu principal do jogo, exibindo opções para o jogador escolher.
+;; (define (menu-game) ...)
 ;
 (define (menu-game)
   (display-menu-game)
@@ -731,10 +781,28 @@
 
 
 
+;; Void -> Void
+;; Realiza a ação correspondente ao comando de ajuda inserido pelo usuário.
+;; (define (help-switch) ...)
+;
+(define (help-switch)
+  (display " -> ")
+  (let ((x (read-line)))
+    (cond
+        [(string=? x "1") (explore-tutorials)]
+        [(string=? x "2") (consult-tips)]
+        [(string=? x "3") (read-documentation)]
+        [(string=? x "4") (menu-game) ]
+        [else (print-help) ])))
 
-; Void -> Void
-; Função que exibe o menu de ajuda, fornecendo opções relacionadas a tutoriais e dicas.
-; (define (print-help) ...)
+
+
+
+
+;; Void -> Void
+;; Função que exibe o menu de ajuda, fornecendo opções relacionadas a tutoriais e dicas.
+;; (define (print-help) ...)
+;
 (define (print-help)
   (newline)
   (displayln "                  ╔════════════════════════════════════════════╗ ")
@@ -750,12 +818,89 @@
   (displayln "                  ║        4. Voltar à Aventura                ║")
   (displayln "                  ╚════════════════════════════════════════════╝")
   (newline)
-  (process-input menu-game print-help 4))
+  
+  (help-switch))
 
 
 
 
 
+;; Void -> Void
+;; Exibe os tutoriais do jogo
+;; (define (explore-tutorials) ...)
+;
+(define (explore-tutorials)
+  (displayln " Você está explorando tutoriais para aprimorar suas habilidades em Racket.")
+  (displayln " Siga os tutoriais e torne-se um mestre programador!")
+  (displayln " 1. Voltar a aba de ajuda")
+  (newline)
+  (process-input print-help explore-tutorials 1))
+
+
+
+
+
+;; Void -> Void
+;; Exibe as dicas do jogo
+;; (define (consult-tips) ...)
+;
+(define (consult-tips)
+  (displayln " Você está consultando as sábias dicas do mestre programador.")
+  (displayln " Dica 1: Sempre teste seu código.")
+  (displayln " Dica 2: Leia a documentação.")
+  (displayln " 1. Voltar a aba de ajuda")
+  (newline)
+  (process-input print-help consult-tips 1))
+
+
+
+
+
+;; Void -> Void
+;; Exibe a documentação do jogo
+;; (define (read-documentation) ...)
+;
+(define (read-documentation)
+  (newline)
+  ; Expressões básicas
+  (displayln " Você está lendo a documentação mágica para desvendar os segredos de Racket.")
+  (displayln " Aqui está a seção sobre expressões básicas:")
+  (newline)
+  
+  ; Números e operações aritméticas
+  (displayln " Operações aritméticas:          ")
+  (displayln "   Soma: (+ 5 3) => 8            ")    ; Soma
+  (displayln "   Subtração: (- 10 4) => 6      ")    ; Subtração
+  (displayln "   Multiplicação: (* 2 6) => 12  ")    ; Multiplicação
+  (displayln "   Divisão: (/ 8 2) => 4         ")    ; Divisão
+  (newline)
+
+  ; Strings
+  (displayln " Manipulação de strings:")
+  (displayln "   Concatenação: (string-append \"Olá, \" \"mundo!\") => retorna a string a concantenada, com a string b. ") ; Concatenação
+  (displayln "   Tamanho da string: (string-length ''Racket'') => retorna o tamanho da string.                          ") ; Tamanho da string
+  (newline)
+
+  ; Condicionais
+  (displayln " Estruturas condicionais:")
+  (displayln "   (define (verificar-paridade num)
+       (if (even? num)
+        ''Par''
+        ''Ímpar''))")
+  (displayln " Verificar paridade: (verificar-paridade 7) => ''Ímpar'' ")  ; Retorna "Ímpar"
+  (newline)
+  (displayln " 1. Voltar a ajuda")
+  (newline)
+  (process-input print-help read-documentation 1))
+
+
+
+
+
+;; Void -> Void
+;; Exibir os créditos do jogo
+;; (define (display-credits) ...)
+;
 (define (display-credits)
   (newline)
   (displayln "                  ╔════════════════════════════════════════════╗")
@@ -782,9 +927,9 @@
 
 
 
-; Void -> Void
-; Função que imprime os créditos do jogo, exibindo informações sobre o desenvolvimento e os integrantes da equipe.
-; (define (print-credits) ...)
+;; Void -> Void
+;; Função que imprime os créditos do jogo, exibindo informações sobre o desenvolvimento e os integrantes da equipe.
+;; (define (print-credits) ...)
 ;
 (define (print-credits)
   (display-credits)
@@ -794,9 +939,9 @@
 
 
 
-; void -> void
-; Exibe uma mensagem de boas-vindas e instruções para a seleção de um nome.
-; (display-select-name)
+;; Void -> Void
+;; Exibe uma mensagem de boas-vindas e instruções para a seleção de um nome.
+;; (display-select-name)
 ;
 (define (display-select-name)
   (newline)
@@ -809,11 +954,11 @@
 
 
 
-; void -> void
-; Exibe uma mensagem de parabéns quando um usuário avança para um novo nível.
-; (define (notify-level-up level)
-; Parâmetros:
-;   - level: O nível para o qual o usuário avançou.
+;; Void -> Void
+;; Exibe uma mensagem de parabéns quando um usuário avança para um novo nível.
+;; (define (notify-level-up level)
+;; Parâmetros:
+;;   - level: O nível para o qual o usuário avançou.
 ;
 (define (notify-level-up level)
   (define border-up "              ╔═*══*══*══*══*══*══*══*══*══*══*══*══*══*══*═╗ ") ; String que representa uma linha de separação visual para destacar a mensagem
@@ -882,6 +1027,10 @@
          200 
          " Ao aprimorar a magia de 'square', a torre ressoa com a vibração da magia aprimorada. Os magos reconhecem sua maestria e indicam o caminho para desafios ainda mais profundos e poderosos."))
 
+
+
+
+
 (define level-1-hard
   (level 7
          "Portal para a Floresta Encantada"
@@ -906,6 +1055,34 @@
          300
          " Ao lançar o feitiço temporal, as ruínas ecoam com eco do passado e visões do futuro. Uma energia temporal pulsante indica que você desvendou mais um mistério, preparando-o para os desafios que aguardam à frente. O portal das Ruínas do Tempo se ilumina, sugerindo que a próxima fase de sua jornada está prestes a se revelar."))
 
-(menu-game)
-; (display-select-difficulty "Andrei")
+
+
+
+;; ------------------------------------------ TESTES ------------------------------------------
+
+;; Void -> Void
+;; Executa todos os testes relacionados às funções do jogo, agrupando os testes de várias funções em um único local para facilitar a execução e verificação da validade do código.
+;; (define (execut-all-tests) ...)
+;
+(define (execut-all-tests)
+  (executa-testes (remove-space-tests))
+  (executa-testes (has-uppercase?-tests))
+  (executa-testes (has-matching-parentheses?-tests))
+  (executa-testes (set-difficulty-tests))
+  (executa-testes (verify-level-up-tests))
+  (executa-testes (next-difficulty-tests))
+  (executa-testes (verify-difficulty-input-tests)))
+
+(execut-all-tests) ; Chama a execução de todos os testes
+
+;; ------------------------------------------ TESTES ------------------------------------------
+
+
+
+;; ------------------------------------------- GAME -------------------------------------------
+
+(menu-game) ; Inicia o jogo
+
+;; ------------------------------------------- GAME -------------------------------------------
+
 
