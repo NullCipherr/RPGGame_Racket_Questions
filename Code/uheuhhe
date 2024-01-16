@@ -1,7 +1,0 @@
-#lang racket
-
-verify-difficulty-input-tests
-verify-level-up-tests
-next-difficulty-tests
-has-matching-parentheses?-tests
-has-uppercase?-tests
